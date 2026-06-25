@@ -1,0 +1,5 @@
+# Base URL for backend API
+# Leave empty for local development (will use same origin)
+# If frontend and backend are on different URLs, specify backend URL here
+# Example: http://localhost:8081 or https://your-backend-url.com
+EXPO_PUBLIC_RORK_API_BASE_URL=

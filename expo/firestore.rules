@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 開発モード：認証なしでアクセス可能（本番では必ず認証ルールに変更してください）
+    match /matchingRequests/{requestId} {
+      allow read, write: if true;
+    }
+    
+    match /matches/{matchId} {
+      allow read, write: if true;
+    }
+    
+    match /matchLogs/{logId} {
+      allow read, write: if true;
+    }
+    
+    match /visitSessions/{sessionId} {
+      allow read, write: if true;
+    }
+    
+    match /medicalRecords/{recordId} {
+      allow read, write: if true;
+    }
+    
+    match /evaluations/{evaluationId} {
+      allow read, write: if true;
+    }
+    
+    match /btDistributions/{distributionId} {
+      allow read, write: if true;
+    }
+    
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    // 本番環境用のルール（コメントアウト）
+    // match /matchingRequests/{requestId} {
+    //   allow read: if request.auth != null;
+    //   allow create: if request.auth != null 
+    //     && request.resource.data.customerId == request.auth.uid;
+    //   allow update: if request.auth != null 
+    //     && (resource.data.customerId == request.auth.uid 
+    //         || request.auth.token.role == 'hairdresser');
+    //   allow delete: if request.auth != null 
+    //     && resource.data.customerId == request.auth.uid;
+    // }
+    
+    // match /matches/{matchId} {
+    //   allow read: if request.auth != null;
+    //   allow create: if request.auth != null 
+    //     && request.resource.data.hairdresserId == request.auth.uid;
+    //   allow update: if request.auth != null 
+    //     && (resource.data.customerId == request.auth.uid 
+    //         || resource.data.hairdresserId == request.auth.uid);
+    //   allow delete: if false;
+    // }
+    
+    // match /matchLogs/{logId} {
+    //   allow read: if request.auth != null;
+    //   allow create: if request.auth != null;
+    //   allow update, delete: if false;
+    // }
+  }
+}
