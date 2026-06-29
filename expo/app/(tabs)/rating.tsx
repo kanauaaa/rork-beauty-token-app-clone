@@ -10,7 +10,7 @@ import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider'
 import { useDisputes } from '@/providers/DisputeProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon } from 'lucide-react-native';
+import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
@@ -71,7 +71,12 @@ function RatingContent() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
-    { id: 'technical', name: '技術力', amount: 0, icon: Zap, color: '#FF69B4' },
+    { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
+    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#E74C3C' },
+    { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
+    { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
+    { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
+    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F39C12' },
     { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'assistant', name: 'アシスタント', amount: 0, icon: Users, color: '#87CEEB' },

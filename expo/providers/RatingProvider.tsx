@@ -51,7 +51,12 @@ export interface Rating {
 }
 
 export interface BTDistribution {
-  technical: number;
+  cut: number;
+  color: number;
+  perm: number;
+  straightening: number;
+  extensions: number;
+  massage: number;
   service: number;
   timeManagement: number;
   assistant: number;
@@ -77,7 +82,12 @@ export interface PendingBP {
 }
 
 export interface PendingBTDistribution {
-  technical: number;
+  cut: number;
+  color: number;
+  perm: number;
+  straightening: number;
+  extensions: number;
+  massage: number;
   service: number;
   timeManagement: number;
   assistant: number;
@@ -466,7 +476,12 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     
     
     const distribution: BTDistribution = {
-      technical: 0,
+      cut: 0,
+      color: 0,
+      perm: 0,
+      straightening: 0,
+      extensions: 0,
+      massage: 0,
       service: 0,
       timeManagement: 0,
       assistant: 0,
@@ -477,8 +492,23 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     hairdresserRatings.forEach(rating => {
       rating.categories.forEach(category => {
         switch (category.id) {
-          case 'technical':
-            distribution.technical += category.btAmount;
+          case 'cut':
+            distribution.cut += category.btAmount;
+            break;
+          case 'color':
+            distribution.color += category.btAmount;
+            break;
+          case 'perm':
+            distribution.perm += category.btAmount;
+            break;
+          case 'straightening':
+            distribution.straightening += category.btAmount;
+            break;
+          case 'extensions':
+            distribution.extensions += category.btAmount;
+            break;
+          case 'massage':
+            distribution.massage += category.btAmount;
             break;
           case 'service':
             distribution.service += category.btAmount;
@@ -494,7 +524,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
       distribution.discarded += rating.btDiscarded || 0;
     });
 
-    distribution.total = distribution.technical + distribution.service + distribution.timeManagement + distribution.assistant;
+    distribution.total = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage + distribution.service + distribution.timeManagement + distribution.assistant;
     
 
     return distribution;
@@ -512,7 +542,12 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     ));
     
     const distribution: PendingBTDistribution = {
-      technical: 0,
+      cut: 0,
+      color: 0,
+      perm: 0,
+      straightening: 0,
+      extensions: 0,
+      massage: 0,
       service: 0,
       timeManagement: 0,
       assistant: 0,
@@ -522,8 +557,23 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     unverifiedConfirmedRatings.forEach(rating => {
       rating.categories.forEach(category => {
         switch (category.id) {
-          case 'technical':
-            distribution.technical += category.btAmount;
+          case 'cut':
+            distribution.cut += category.btAmount;
+            break;
+          case 'color':
+            distribution.color += category.btAmount;
+            break;
+          case 'perm':
+            distribution.perm += category.btAmount;
+            break;
+          case 'straightening':
+            distribution.straightening += category.btAmount;
+            break;
+          case 'extensions':
+            distribution.extensions += category.btAmount;
+            break;
+          case 'massage':
+            distribution.massage += category.btAmount;
             break;
           case 'service':
             distribution.service += category.btAmount;
@@ -541,8 +591,23 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     hairdresserPendingBPs.forEach(bp => {
       bp.categories.forEach(category => {
         switch (category.id) {
-          case 'technical':
-            distribution.technical += category.btAmount;
+          case 'cut':
+            distribution.cut += category.btAmount;
+            break;
+          case 'color':
+            distribution.color += category.btAmount;
+            break;
+          case 'perm':
+            distribution.perm += category.btAmount;
+            break;
+          case 'straightening':
+            distribution.straightening += category.btAmount;
+            break;
+          case 'extensions':
+            distribution.extensions += category.btAmount;
+            break;
+          case 'massage':
+            distribution.massage += category.btAmount;
             break;
           case 'service':
             distribution.service += category.btAmount;
@@ -557,7 +622,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
       });
     });
 
-    distribution.total = distribution.technical + distribution.service + distribution.timeManagement + distribution.assistant;
+    distribution.total = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage + distribution.service + distribution.timeManagement + distribution.assistant;
 
     return distribution;
   }, [pendingBPs, ratings]);

@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
-import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy } from 'lucide-react-native';
+import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -629,9 +629,34 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>評価項目別獲得BP</Text>
               <View style={styles.btDistributionGrid}>
                 <View style={styles.btDistributionCard}>
-                  <Zap size={20} color="#FF69B4" />
-                  <Text style={styles.btDistributionValue}>{distribution.technical}</Text>
-                  <Text style={styles.btDistributionLabel}>技術力</Text>
+                  <Scissors size={20} color="#FF69B4" />
+                  <Text style={styles.btDistributionValue}>{distribution.cut}</Text>
+                  <Text style={styles.btDistributionLabel}>カット</Text>
+                </View>
+                <View style={styles.btDistributionCard}>
+                  <Palette size={20} color="#E74C3C" />
+                  <Text style={styles.btDistributionValue}>{distribution.color}</Text>
+                  <Text style={styles.btDistributionLabel}>カラー</Text>
+                </View>
+                <View style={styles.btDistributionCard}>
+                  <Waves size={20} color="#9B59B6" />
+                  <Text style={styles.btDistributionValue}>{distribution.perm}</Text>
+                  <Text style={styles.btDistributionLabel}>パーマ</Text>
+                </View>
+                <View style={styles.btDistributionCard}>
+                  <AlignJustify size={20} color="#3498DB" />
+                  <Text style={styles.btDistributionValue}>{distribution.straightening}</Text>
+                  <Text style={styles.btDistributionLabel}>縮毛矯正</Text>
+                </View>
+                <View style={styles.btDistributionCard}>
+                  <Link size={20} color="#2ECC71" />
+                  <Text style={styles.btDistributionValue}>{distribution.extensions}</Text>
+                  <Text style={styles.btDistributionLabel}>エクステ</Text>
+                </View>
+                <View style={styles.btDistributionCard}>
+                  <Hand size={20} color="#F39C12" />
+                  <Text style={styles.btDistributionValue}>{distribution.massage}</Text>
+                  <Text style={styles.btDistributionLabel}>マッサージ</Text>
                 </View>
                 <View style={styles.btDistributionCard}>
                   <Heart size={20} color="#FF69B4" />

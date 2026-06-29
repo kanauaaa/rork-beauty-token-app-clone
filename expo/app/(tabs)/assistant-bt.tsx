@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Zap, Heart, Clock, Trash2, Users, Plus, Minus, Camera, X, QrCode, Send } from 'lucide-react-native';
+import { Scissors, Palette, Waves, AlignJustify, Link, Hand, Heart, Clock, Trash2, Users, Plus, Minus, Camera, X, QrCode, Send } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 
@@ -30,7 +30,12 @@ export default function AssistantBTScreen() {
   const alertShownRef = useRef(false);
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
-    { id: 'technical', name: '技術力', amount: 0, icon: Zap, color: '#FF69B4' },
+    { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
+    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#E74C3C' },
+    { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
+    { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
+    { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
+    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F39C12' },
     { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
@@ -350,7 +355,7 @@ export default function AssistantBTScreen() {
               <Text style={styles.instructionText}>
                 • 顧客がアシスタントに評価したBPを付与できます{'\n'}
                 • アシスタント美容師のQRコードをスキャンします{'\n'}
-                • BPを各評価項目（技術力、接客・サービス、時間管理）に振り分けて付与します{'\n'}
+                • BPを各評価項目（カット、カラー、パーマ、縮毛矯正、エクステ、マッサージ、接客・サービス、時間管理）に振り分けて付与します{'\n'}
                 • アシスタントが複数いる場合、順番に各アシスタントへ付与します{'\n'}
                 • BP破棄を選択すると、そのBPは誰にも付与されず破棄されます{'\n'}
                 • 全てのBPを付与すると、タスクは自動的に削除されます
