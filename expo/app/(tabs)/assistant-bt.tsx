@@ -572,13 +572,18 @@ export default function AssistantBTScreen() {
                               <Text style={styles.allocationUnit}>BP</Text>
                             </View>
                           </TouchableOpacity>
-                          {technicalExpanded && techItems.map((allocation) => {
+                          {technicalExpanded && (() => {
+                            const maxTechVal = Math.max(...techItems.map(a => a.amount), 1);
+                            return techItems.map((allocation) => {
                             const IconComponent = allocation.icon;
                             return (
                               <View key={allocation.id} style={[styles.allocationCard, { marginLeft: 8, backgroundColor: '#F4F4F9' }]}>
                                 <View style={styles.allocationHeader}>
-                                  <IconComponent size={18} color={allocation.color} />
-                                  <Text style={[styles.allocationName, { fontSize: 13 }]}>{allocation.name}</Text>
+                                  <IconComponent size={16} color={allocation.color} />
+                                  <Text style={[styles.allocationName, { fontSize: 12, width: 56 }]}>{allocation.name}</Text>
+                                </View>
+                                <View style={styles.allocationBarTrack}>
+                                  <View style={[styles.allocationBarFill, { width: `${Math.max((allocation.amount / maxTechVal) * 100, 2)}%`, backgroundColor: allocation.color }]} />
                                 </View>
                                 <View style={styles.allocationControls}>
                                   <TouchableOpacity
@@ -586,10 +591,10 @@ export default function AssistantBTScreen() {
                                     onPress={() => updateBTAllocation(allocation.id, -1)}
                                     disabled={allocation.amount === 0}
                                   >
-                                    <Minus size={16} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                    <Minus size={14} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
                                   </TouchableOpacity>
                                   <View style={styles.allocationAmountContainer}>
-                                    <Text style={[styles.allocationAmount, { fontSize: 16 }]}>{allocation.amount}</Text>
+                                    <Text style={[styles.allocationAmount, { fontSize: 14 }]}>{allocation.amount}</Text>
                                     <Text style={styles.allocationUnit}>BP</Text>
                                   </View>
                                   <TouchableOpacity
@@ -597,12 +602,12 @@ export default function AssistantBTScreen() {
                                     onPress={() => updateBTAllocation(allocation.id, 1)}
                                     disabled={remainingAssistantBT <= 0}
                                   >
-                                    <Plus size={16} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                    <Plus size={14} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
                                   </TouchableOpacity>
                                 </View>
                               </View>
                             );
-                          })}
+                          })})()}
                           {otherItems.map((allocation) => {
                             const IconComponent = allocation.icon;
                             return (
@@ -1026,9 +1031,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   allocationButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'white',
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
@@ -1037,6 +1042,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  allocationBarTrack: {
+    flex: 1,
+    height: 16,
+    backgroundColor: '#E8E8ED',
+    borderRadius: 8,
+    overflow: 'hidden' as const,
+    marginHorizontal: 8,
+  },
+  allocationBarFill: {
+    height: '100%' as const,
+    borderRadius: 8,
+    minWidth: 2,
   },
   allocationAmountContainer: {
     flexDirection: 'row' as const,

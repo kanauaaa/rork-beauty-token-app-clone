@@ -647,40 +647,61 @@ export default function ProfileScreen() {
                         <Text style={[styles.btDistributionLabel, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
                       </TouchableOpacity>
 
-                      {technicalExpanded && (
+                      {technicalExpanded && (() => {
+                        const maxTech = Math.max(distribution.cut, distribution.color, distribution.perm, distribution.straightening, distribution.extensions, distribution.massage, 1);
+                        return (
                         <>
-                          <View style={styles.btDistributionCard}>
-                            <Scissors size={20} color="#FF69B4" />
-                            <Text style={styles.btDistributionValue}>{distribution.cut}</Text>
-                            <Text style={styles.btDistributionLabel}>カット</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <Scissors size={16} color="#FF69B4" />
+                            <Text style={styles.btDistributionBarLabel}>カット</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.cut / maxTech) * 100, 2)}%`, backgroundColor: '#FF69B4' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#FF69B4' }]}>{distribution.cut}</Text>
                           </View>
-                          <View style={styles.btDistributionCard}>
-                            <Palette size={20} color="#E74C3C" />
-                            <Text style={styles.btDistributionValue}>{distribution.color}</Text>
-                            <Text style={styles.btDistributionLabel}>カラー</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <Palette size={16} color="#E74C3C" />
+                            <Text style={styles.btDistributionBarLabel}>カラー</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.color / maxTech) * 100, 2)}%`, backgroundColor: '#E74C3C' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#E74C3C' }]}>{distribution.color}</Text>
                           </View>
-                          <View style={styles.btDistributionCard}>
-                            <Waves size={20} color="#9B59B6" />
-                            <Text style={styles.btDistributionValue}>{distribution.perm}</Text>
-                            <Text style={styles.btDistributionLabel}>パーマ</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <Waves size={16} color="#9B59B6" />
+                            <Text style={styles.btDistributionBarLabel}>パーマ</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.perm / maxTech) * 100, 2)}%`, backgroundColor: '#9B59B6' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#9B59B6' }]}>{distribution.perm}</Text>
                           </View>
-                          <View style={styles.btDistributionCard}>
-                            <AlignJustify size={20} color="#3498DB" />
-                            <Text style={styles.btDistributionValue}>{distribution.straightening}</Text>
-                            <Text style={styles.btDistributionLabel}>縮毛矯正</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <AlignJustify size={16} color="#3498DB" />
+                            <Text style={styles.btDistributionBarLabel}>縮毛矯正</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.straightening / maxTech) * 100, 2)}%`, backgroundColor: '#3498DB' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#3498DB' }]}>{distribution.straightening}</Text>
                           </View>
-                          <View style={styles.btDistributionCard}>
-                            <Link size={20} color="#2ECC71" />
-                            <Text style={styles.btDistributionValue}>{distribution.extensions}</Text>
-                            <Text style={styles.btDistributionLabel}>エクステ</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <Link size={16} color="#2ECC71" />
+                            <Text style={styles.btDistributionBarLabel}>エクステ</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.extensions / maxTech) * 100, 2)}%`, backgroundColor: '#2ECC71' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#2ECC71' }]}>{distribution.extensions}</Text>
                           </View>
-                          <View style={styles.btDistributionCard}>
-                            <Hand size={20} color="#F39C12" />
-                            <Text style={styles.btDistributionValue}>{distribution.massage}</Text>
-                            <Text style={styles.btDistributionLabel}>マッサージ</Text>
+                          <View style={styles.btDistributionBarCard}>
+                            <Hand size={16} color="#F39C12" />
+                            <Text style={styles.btDistributionBarLabel}>マッサージ</Text>
+                            <View style={styles.btDistributionBarTrack}>
+                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.massage / maxTech) * 100, 2)}%`, backgroundColor: '#F39C12' }]} />
+                            </View>
+                            <Text style={[styles.btDistributionBarValue, { color: '#F39C12' }]}>{distribution.massage}</Text>
                           </View>
                         </>
-                      )}
+                        );
+                      })()}
                     </>
                   );
                 })()}
@@ -2356,6 +2377,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7F8C8D',
     textAlign: 'center' as const,
+  },
+  btDistributionBarCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+    width: '100%' as const,
+  },
+  btDistributionBarLabel: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: '#2C3E50',
+    width: 56,
+  },
+  btDistributionBarTrack: {
+    flex: 1,
+    height: 18,
+    backgroundColor: '#E8E8ED',
+    borderRadius: 9,
+    overflow: 'hidden' as const,
+  },
+  btDistributionBarFill: {
+    height: '100%' as const,
+    borderRadius: 9,
+    minWidth: 2,
+  },
+  btDistributionBarValue: {
+    fontSize: 14,
+    fontWeight: 'bold' as const,
+    width: 36,
+    textAlign: 'right' as const,
   },
   btDistributionSummary: {
     backgroundColor: 'rgba(135, 206, 235, 0.1)',
