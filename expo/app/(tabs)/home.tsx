@@ -3,7 +3,7 @@ import { Stack, router } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Platform, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
-import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, Sparkles, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand } from 'lucide-react-native';
+import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, Sparkles, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
@@ -62,6 +62,7 @@ function HomeContent() {
   const [receiptPhotoUrl, setReceiptPhotoUrl] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set());
+  const [technicalExpanded, setTechnicalExpanded] = useState(false);
 
 
 
@@ -642,101 +643,138 @@ function HomeContent() {
               </View>
               
               <View style={styles.btBreakdownCard}>
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Scissors size={20} color="#FF69B4" />
-                    <Text style={styles.btBreakdownLabel}>カット</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.cut}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.cut > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.cut}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                {/* 技術力 group */}
+                {(() => {
+                  const techTotal = btDistribution.cut + btDistribution.color + btDistribution.perm + btDistribution.straightening + btDistribution.extensions + btDistribution.massage;
+                  const pendingTechTotal = pendingBTDistribution.cut + pendingBTDistribution.color + pendingBTDistribution.perm + pendingBTDistribution.straightening + pendingBTDistribution.extensions + pendingBTDistribution.massage;
+                  return (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.btBreakdownItem, { borderLeftWidth: 3, borderLeftColor: '#FF69B4', paddingLeft: 12 }]}
+                        onPress={() => setTechnicalExpanded(!technicalExpanded)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.btBreakdownHeader}>
+                          <ChevronDown
+                            size={16}
+                            color="#FF69B4"
+                            style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
+                          />
+                          <Text style={[styles.btBreakdownLabel, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
+                        </View>
+                        <View style={styles.btBreakdownValueColumn}>
+                          <View style={styles.btBreakdownValue}>
+                            <Text style={[styles.btBreakdownAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
+                            <Text style={styles.btBreakdownUnit}>BP</Text>
+                          </View>
+                          {pendingTechTotal > 0 && (
+                            <Text style={styles.pendingBPText}>+{pendingTechTotal}（仮）</Text>
+                          )}
+                        </View>
+                      </TouchableOpacity>
 
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Palette size={20} color="#E74C3C" />
-                    <Text style={styles.btBreakdownLabel}>カラー</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.color}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.color > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.color}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                      {technicalExpanded && (
+                        <>
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <Scissors size={18} color="#FF69B4" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>カット</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.cut}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.cut > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.cut}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
 
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Waves size={20} color="#9B59B6" />
-                    <Text style={styles.btBreakdownLabel}>パーマ</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.perm}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.perm > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.perm}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <Palette size={18} color="#E74C3C" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>カラー</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.color}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.color > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.color}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
 
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <AlignJustify size={20} color="#3498DB" />
-                    <Text style={styles.btBreakdownLabel}>縮毛矯正</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.straightening}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.straightening > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.straightening}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <Waves size={18} color="#9B59B6" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>パーマ</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.perm}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.perm > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.perm}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
 
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Link size={20} color="#2ECC71" />
-                    <Text style={styles.btBreakdownLabel}>エクステ</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.extensions}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.extensions > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.extensions}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <AlignJustify size={18} color="#3498DB" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>縮毛矯正</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.straightening}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.straightening > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.straightening}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
 
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Hand size={20} color="#F39C12" />
-                    <Text style={styles.btBreakdownLabel}>マッサージ</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.massage}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.massage > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.massage}（仮）</Text>
-                    )}
-                  </View>
-                </View>
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <Link size={18} color="#2ECC71" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>エクステ</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.extensions}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.extensions > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.extensions}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
+
+                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
+                            <View style={styles.btBreakdownHeader}>
+                              <Hand size={18} color="#F39C12" />
+                              <Text style={[styles.btBreakdownLabel, { fontSize: 13 }]}>マッサージ</Text>
+                            </View>
+                            <View style={styles.btBreakdownValueColumn}>
+                              <View style={styles.btBreakdownValue}>
+                                <Text style={[styles.btBreakdownAmount, { fontSize: 16 }]}>{btDistribution.massage}</Text>
+                                <Text style={styles.btBreakdownUnit}>BP</Text>
+                              </View>
+                              {pendingBTDistribution.massage > 0 && (
+                                <Text style={styles.pendingBPText}>+{pendingBTDistribution.massage}（仮）</Text>
+                              )}
+                            </View>
+                          </View>
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
 
                 <View style={styles.btBreakdownItem}>
                   <View style={styles.btBreakdownHeader}>

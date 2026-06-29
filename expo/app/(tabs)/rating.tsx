@@ -10,7 +10,7 @@ import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider'
 import { useDisputes } from '@/providers/DisputeProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand } from 'lucide-react-native';
+import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
@@ -69,6 +69,7 @@ function RatingContent() {
   const [savePhotoToRecord, setSavePhotoToRecord] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [technicalExpanded, setTechnicalExpanded] = useState(false);
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
     { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
@@ -1332,37 +1333,96 @@ Alert.alert(
                   <Text style={styles.allocationsSectionSubtitle}>
                     各評価項目にBPを振り分けてください（1000円 = 1BP）
                   </Text>
-                  {btAllocations.map((allocation) => {
-                    const IconComponent = allocation.icon;
+                  {(() => {
+                    const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
+                    const techItems = btAllocations.filter(a => techIds.includes(a.id));
+                    const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
+                    const techTotal = techItems.reduce((s, a) => s + a.amount, 0);
                     return (
-                      <View key={allocation.id} style={styles.allocationCard}>
-                        <View style={styles.allocationHeader}>
-                          <IconComponent size={24} color={allocation.color} />
-                          <Text style={styles.allocationName}>{allocation.name}</Text>
-                        </View>
-                        <View style={styles.allocationControls}>
-                          <TouchableOpacity
-                            style={styles.allocationButton}
-                            onPress={() => updateBTAllocation(allocation.id, -1)}
-                            disabled={allocation.amount === 0}
-                          >
-                            <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                          </TouchableOpacity>
+                      <>
+                        <TouchableOpacity
+                          style={[styles.allocationCard, { borderLeftWidth: 3, borderLeftColor: '#FF69B4' }]}
+                          onPress={() => setTechnicalExpanded(!technicalExpanded)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.allocationHeader}>
+                            <ChevronDown
+                              size={20}
+                              color="#FF69B4"
+                              style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
+                            />
+                            <Text style={[styles.allocationName, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
+                          </View>
                           <View style={styles.allocationAmountContainer}>
-                            <Text style={styles.allocationAmount}>{allocation.amount}</Text>
+                            <Text style={[styles.allocationAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
                             <Text style={styles.allocationUnit}>BP</Text>
                           </View>
-                          <TouchableOpacity
-                            style={styles.allocationButton}
-                            onPress={() => updateBTAllocation(allocation.id, 1)}
-                            disabled={remainingBT <= 0}
-                          >
-                            <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
+                        </TouchableOpacity>
+                        {technicalExpanded && techItems.map((allocation) => {
+                          const IconComponent = allocation.icon;
+                          return (
+                            <View key={allocation.id} style={[styles.allocationCard, { marginLeft: 8, backgroundColor: '#F4F4F9' }]}>
+                              <View style={styles.allocationHeader}>
+                                <IconComponent size={20} color={allocation.color} />
+                                <Text style={[styles.allocationName, { fontSize: 14 }]}>{allocation.name}</Text>
+                              </View>
+                              <View style={styles.allocationControls}>
+                                <TouchableOpacity
+                                  style={styles.allocationButton}
+                                  onPress={() => updateBTAllocation(allocation.id, -1)}
+                                  disabled={allocation.amount === 0}
+                                >
+                                  <Minus size={18} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                </TouchableOpacity>
+                                <View style={styles.allocationAmountContainer}>
+                                  <Text style={[styles.allocationAmount, { fontSize: 16 }]}>{allocation.amount}</Text>
+                                  <Text style={styles.allocationUnit}>BP</Text>
+                                </View>
+                                <TouchableOpacity
+                                  style={styles.allocationButton}
+                                  onPress={() => updateBTAllocation(allocation.id, 1)}
+                                  disabled={remainingBT <= 0}
+                                >
+                                  <Plus size={18} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          );
+                        })}
+                        {otherItems.map((allocation) => {
+                          const IconComponent = allocation.icon;
+                          return (
+                            <View key={allocation.id} style={styles.allocationCard}>
+                              <View style={styles.allocationHeader}>
+                                <IconComponent size={24} color={allocation.color} />
+                                <Text style={styles.allocationName}>{allocation.name}</Text>
+                              </View>
+                              <View style={styles.allocationControls}>
+                                <TouchableOpacity
+                                  style={styles.allocationButton}
+                                  onPress={() => updateBTAllocation(allocation.id, -1)}
+                                  disabled={allocation.amount === 0}
+                                >
+                                  <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                </TouchableOpacity>
+                                <View style={styles.allocationAmountContainer}>
+                                  <Text style={styles.allocationAmount}>{allocation.amount}</Text>
+                                  <Text style={styles.allocationUnit}>BP</Text>
+                                </View>
+                                <TouchableOpacity
+                                  style={styles.allocationButton}
+                                  onPress={() => updateBTAllocation(allocation.id, 1)}
+                                  disabled={remainingBT <= 0}
+                                >
+                                  <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </>
                     );
-                  })}
+                  })()}
                 </View>
 
                 <Text style={styles.commentLabel}>コメント（任意）</Text>

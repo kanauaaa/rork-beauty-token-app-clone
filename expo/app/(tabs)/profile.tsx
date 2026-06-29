@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
-import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand } from 'lucide-react-native';
+import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -45,6 +45,7 @@ export default function ProfileScreen() {
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const [onChainBP, setOnChainBP] = useState<number>(0);
   const [loadingOnChain, setLoadingOnChain] = useState(false);
+  const [technicalExpanded, setTechnicalExpanded] = useState(false);
 
   const [_lastTxHash, setLastTxHash] = useState<string | null>(null);
   const [txHistory, setTxHistory] = useState<Array<{ hash: string; type: string; timestamp: number }>>([]);
@@ -628,36 +629,61 @@ export default function ProfileScreen() {
             <View style={styles.btDistributionContainer}>
               <Text style={styles.sectionTitle}>評価項目別獲得BP</Text>
               <View style={styles.btDistributionGrid}>
-                <View style={styles.btDistributionCard}>
-                  <Scissors size={20} color="#FF69B4" />
-                  <Text style={styles.btDistributionValue}>{distribution.cut}</Text>
-                  <Text style={styles.btDistributionLabel}>カット</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <Palette size={20} color="#E74C3C" />
-                  <Text style={styles.btDistributionValue}>{distribution.color}</Text>
-                  <Text style={styles.btDistributionLabel}>カラー</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <Waves size={20} color="#9B59B6" />
-                  <Text style={styles.btDistributionValue}>{distribution.perm}</Text>
-                  <Text style={styles.btDistributionLabel}>パーマ</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <AlignJustify size={20} color="#3498DB" />
-                  <Text style={styles.btDistributionValue}>{distribution.straightening}</Text>
-                  <Text style={styles.btDistributionLabel}>縮毛矯正</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <Link size={20} color="#2ECC71" />
-                  <Text style={styles.btDistributionValue}>{distribution.extensions}</Text>
-                  <Text style={styles.btDistributionLabel}>エクステ</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <Hand size={20} color="#F39C12" />
-                  <Text style={styles.btDistributionValue}>{distribution.massage}</Text>
-                  <Text style={styles.btDistributionLabel}>マッサージ</Text>
-                </View>
+                {(() => {
+                  const techTotal = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage;
+                  return (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.btDistributionCard, { borderWidth: 2, borderColor: '#FF69B4' }]}
+                        onPress={() => setTechnicalExpanded(!technicalExpanded)}
+                        activeOpacity={0.7}
+                      >
+                        <ChevronDown
+                          size={16}
+                          color="#FF69B4"
+                          style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }], marginBottom: 4 }}
+                        />
+                        <Text style={[styles.btDistributionValue, { color: '#FF69B4' }]}>{techTotal}</Text>
+                        <Text style={[styles.btDistributionLabel, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
+                      </TouchableOpacity>
+
+                      {technicalExpanded && (
+                        <>
+                          <View style={styles.btDistributionCard}>
+                            <Scissors size={20} color="#FF69B4" />
+                            <Text style={styles.btDistributionValue}>{distribution.cut}</Text>
+                            <Text style={styles.btDistributionLabel}>カット</Text>
+                          </View>
+                          <View style={styles.btDistributionCard}>
+                            <Palette size={20} color="#E74C3C" />
+                            <Text style={styles.btDistributionValue}>{distribution.color}</Text>
+                            <Text style={styles.btDistributionLabel}>カラー</Text>
+                          </View>
+                          <View style={styles.btDistributionCard}>
+                            <Waves size={20} color="#9B59B6" />
+                            <Text style={styles.btDistributionValue}>{distribution.perm}</Text>
+                            <Text style={styles.btDistributionLabel}>パーマ</Text>
+                          </View>
+                          <View style={styles.btDistributionCard}>
+                            <AlignJustify size={20} color="#3498DB" />
+                            <Text style={styles.btDistributionValue}>{distribution.straightening}</Text>
+                            <Text style={styles.btDistributionLabel}>縮毛矯正</Text>
+                          </View>
+                          <View style={styles.btDistributionCard}>
+                            <Link size={20} color="#2ECC71" />
+                            <Text style={styles.btDistributionValue}>{distribution.extensions}</Text>
+                            <Text style={styles.btDistributionLabel}>エクステ</Text>
+                          </View>
+                          <View style={styles.btDistributionCard}>
+                            <Hand size={20} color="#F39C12" />
+                            <Text style={styles.btDistributionValue}>{distribution.massage}</Text>
+                            <Text style={styles.btDistributionLabel}>マッサージ</Text>
+                          </View>
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
                 <View style={styles.btDistributionCard}>
                   <Heart size={20} color="#FF69B4" />
                   <Text style={styles.btDistributionValue}>{distribution.service}</Text>
