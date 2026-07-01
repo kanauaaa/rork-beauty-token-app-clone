@@ -574,40 +574,42 @@ export default function AssistantBTScreen() {
                           </TouchableOpacity>
                           {technicalExpanded && (() => {
                             const maxTechVal = Math.max(...techItems.map(a => a.amount), 1);
-                            return techItems.map((allocation) => {
-                            const IconComponent = allocation.icon;
                             return (
-                              <View key={allocation.id} style={[styles.allocationCard, { marginLeft: 8, backgroundColor: '#F4F4F9' }]}>
-                                <View style={styles.allocationHeader}>
-                                  <IconComponent size={16} color={allocation.color} />
-                                  <Text style={[styles.allocationName, { fontSize: 12, width: 56 }]}>{allocation.name}</Text>
-                                </View>
-                                <View style={styles.allocationBarTrack}>
-                                  <View style={[styles.allocationBarFill, { width: `${Math.max((allocation.amount / maxTechVal) * 100, 2)}%`, backgroundColor: allocation.color }]} />
-                                </View>
-                                <View style={styles.allocationControls}>
-                                  <TouchableOpacity
-                                    style={styles.allocationButton}
-                                    onPress={() => updateBTAllocation(allocation.id, -1)}
-                                    disabled={allocation.amount === 0}
-                                  >
-                                    <Minus size={14} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                  </TouchableOpacity>
-                                  <View style={styles.allocationAmountContainer}>
-                                    <Text style={[styles.allocationAmount, { fontSize: 14 }]}>{allocation.amount}</Text>
-                                    <Text style={styles.allocationUnit}>BP</Text>
-                                  </View>
-                                  <TouchableOpacity
-                                    style={styles.allocationButton}
-                                    onPress={() => updateBTAllocation(allocation.id, 1)}
-                                    disabled={remainingAssistantBT <= 0}
-                                  >
-                                    <Plus size={14} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                  </TouchableOpacity>
-                                </View>
+                              <View style={styles.allocationVerticalContainer}>
+                                {techItems.map((allocation) => {
+                                  const IconComponent = allocation.icon;
+                                  const barHeight = Math.max((allocation.amount / maxTechVal) * 80, 4);
+                                  return (
+                                    <View key={allocation.id} style={styles.allocationVerticalBar}>
+                                      <View style={styles.allocationVerticalValueRow}>
+                                        <Text style={[styles.allocationVerticalValue, { color: allocation.color }]}>{allocation.amount}</Text>
+                                        <Text style={styles.allocationVerticalUnit}>BP</Text>
+                                      </View>
+                                      <View style={[styles.allocationVerticalFill, { height: barHeight, backgroundColor: allocation.color }]} />
+                                      <IconComponent size={14} color={allocation.color} style={{ marginTop: 6 }} />
+                                      <Text style={styles.allocationVerticalLabel}>{allocation.name}</Text>
+                                      <View style={styles.allocationVerticalControls}>
+                                        <TouchableOpacity
+                                          style={styles.allocationMiniButton}
+                                          onPress={() => updateBTAllocation(allocation.id, -1)}
+                                          disabled={allocation.amount === 0}
+                                        >
+                                          <Minus size={12} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                          style={styles.allocationMiniButton}
+                                          onPress={() => updateBTAllocation(allocation.id, 1)}
+                                          disabled={remainingAssistantBT <= 0}
+                                        >
+                                          <Plus size={12} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                        </TouchableOpacity>
+                                      </View>
+                                    </View>
+                                  );
+                                })}
                               </View>
                             );
-                          })})()}
+                          })()}
                           {otherItems.map((allocation) => {
                             const IconComponent = allocation.icon;
                             return (
@@ -1043,18 +1045,63 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  allocationBarTrack: {
-    flex: 1,
-    height: 16,
-    backgroundColor: '#E8E8ED',
-    borderRadius: 8,
-    overflow: 'hidden' as const,
-    marginHorizontal: 8,
+  allocationVerticalContainer: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-around' as const,
+    alignItems: 'flex-end' as const,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    backgroundColor: '#F4F4F9',
+    borderRadius: 12,
+    marginBottom: 8,
+    marginLeft: 8,
   },
-  allocationBarFill: {
-    height: '100%' as const,
-    borderRadius: 8,
-    minWidth: 2,
+  allocationVerticalBar: {
+    alignItems: 'center' as const,
+    width: 46,
+  },
+  allocationVerticalValueRow: {
+    alignItems: 'center' as const,
+    marginBottom: 4,
+  },
+  allocationVerticalValue: {
+    fontSize: 13,
+    fontWeight: 'bold' as const,
+  },
+  allocationVerticalUnit: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+  },
+  allocationVerticalFill: {
+    width: 24,
+    borderRadius: 5,
+    minHeight: 4,
+  },
+  allocationVerticalLabel: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+    marginTop: 4,
+    textAlign: 'center' as const,
+  },
+  allocationVerticalControls: {
+    flexDirection: 'row' as const,
+    gap: 4,
+    marginTop: 6,
+  },
+  allocationMiniButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'white',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+    elevation: 1,
   },
   allocationAmountContainer: {
     flexDirection: 'row' as const,

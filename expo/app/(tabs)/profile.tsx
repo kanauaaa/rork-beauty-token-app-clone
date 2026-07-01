@@ -649,57 +649,29 @@ export default function ProfileScreen() {
 
                       {technicalExpanded && (() => {
                         const maxTech = Math.max(distribution.cut, distribution.color, distribution.perm, distribution.straightening, distribution.extensions, distribution.massage, 1);
+                        const items = [
+                          { icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut },
+                          { icon: Palette, color: '#E74C3C', label: 'カラー', value: distribution.color },
+                          { icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm },
+                          { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
+                          { icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
+                          { icon: Hand, color: '#F39C12', label: 'マッサージ', value: distribution.massage },
+                        ];
                         return (
-                        <>
-                          <View style={styles.btDistributionBarCard}>
-                            <Scissors size={16} color="#FF69B4" />
-                            <Text style={styles.btDistributionBarLabel}>カット</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.cut / maxTech) * 100, 2)}%`, backgroundColor: '#FF69B4' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#FF69B4' }]}>{distribution.cut}</Text>
+                          <View style={styles.btDistributionVerticalContainer}>
+                            {items.map((item, idx) => {
+                              const barHeight = Math.max((item.value / maxTech) * 100, 4);
+                              const IconComponent = item.icon;
+                              return (
+                                <View key={idx} style={styles.btDistributionVerticalBar}>
+                                  <Text style={[styles.btDistributionVerticalValue, { color: item.color }]}>{item.value}</Text>
+                                  <View style={[styles.btDistributionVerticalFill, { height: barHeight, backgroundColor: item.color }]} />
+                                  <IconComponent size={14} color={item.color} style={{ marginTop: 6 }} />
+                                  <Text style={styles.btDistributionVerticalLabel}>{item.label}</Text>
+                                </View>
+                              );
+                            })}
                           </View>
-                          <View style={styles.btDistributionBarCard}>
-                            <Palette size={16} color="#E74C3C" />
-                            <Text style={styles.btDistributionBarLabel}>カラー</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.color / maxTech) * 100, 2)}%`, backgroundColor: '#E74C3C' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#E74C3C' }]}>{distribution.color}</Text>
-                          </View>
-                          <View style={styles.btDistributionBarCard}>
-                            <Waves size={16} color="#9B59B6" />
-                            <Text style={styles.btDistributionBarLabel}>パーマ</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.perm / maxTech) * 100, 2)}%`, backgroundColor: '#9B59B6' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#9B59B6' }]}>{distribution.perm}</Text>
-                          </View>
-                          <View style={styles.btDistributionBarCard}>
-                            <AlignJustify size={16} color="#3498DB" />
-                            <Text style={styles.btDistributionBarLabel}>縮毛矯正</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.straightening / maxTech) * 100, 2)}%`, backgroundColor: '#3498DB' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#3498DB' }]}>{distribution.straightening}</Text>
-                          </View>
-                          <View style={styles.btDistributionBarCard}>
-                            <Link size={16} color="#2ECC71" />
-                            <Text style={styles.btDistributionBarLabel}>エクステ</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.extensions / maxTech) * 100, 2)}%`, backgroundColor: '#2ECC71' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#2ECC71' }]}>{distribution.extensions}</Text>
-                          </View>
-                          <View style={styles.btDistributionBarCard}>
-                            <Hand size={16} color="#F39C12" />
-                            <Text style={styles.btDistributionBarLabel}>マッサージ</Text>
-                            <View style={styles.btDistributionBarTrack}>
-                              <View style={[styles.btDistributionBarFill, { width: `${Math.max((distribution.massage / maxTech) * 100, 2)}%`, backgroundColor: '#F39C12' }]} />
-                            </View>
-                            <Text style={[styles.btDistributionBarValue, { color: '#F39C12' }]}>{distribution.massage}</Text>
-                          </View>
-                        </>
                         );
                       })()}
                     </>
@@ -2378,43 +2350,36 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
     textAlign: 'center' as const,
   },
-  btDistributionBarCard: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 10,
+  btDistributionVerticalContainer: {
     flexDirection: 'row' as const,
+    justifyContent: 'space-around' as const,
+    alignItems: 'flex-end' as const,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    backgroundColor: '#FAFBFC',
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  btDistributionVerticalBar: {
     alignItems: 'center' as const,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-    width: '100%' as const,
+    width: 48,
   },
-  btDistributionBarLabel: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-    color: '#2C3E50',
-    width: 56,
-  },
-  btDistributionBarTrack: {
-    flex: 1,
-    height: 18,
-    backgroundColor: '#E8E8ED',
-    borderRadius: 9,
-    overflow: 'hidden' as const,
-  },
-  btDistributionBarFill: {
-    height: '100%' as const,
-    borderRadius: 9,
-    minWidth: 2,
-  },
-  btDistributionBarValue: {
-    fontSize: 14,
+  btDistributionVerticalValue: {
+    fontSize: 13,
     fontWeight: 'bold' as const,
-    width: 36,
-    textAlign: 'right' as const,
+    marginBottom: 4,
+  },
+  btDistributionVerticalFill: {
+    width: 28,
+    borderRadius: 6,
+    minHeight: 4,
+  },
+  btDistributionVerticalLabel: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+    marginTop: 4,
+    textAlign: 'center' as const,
   },
   btDistributionSummary: {
     backgroundColor: 'rgba(135, 206, 235, 0.1)',

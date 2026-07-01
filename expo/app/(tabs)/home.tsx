@@ -675,121 +675,32 @@ function HomeContent() {
                       </TouchableOpacity>
 
                       {technicalExpanded && (
-                        <>
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <Scissors size={16} color="#FF69B4" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>カット</Text>
+                        <View style={styles.btBreakdownVerticalContainer}>
+                          {[
+                            { icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut },
+                            { icon: Palette, color: '#E74C3C', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
+                            { icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm },
+                            { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
+                            { icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
+                            { icon: Hand, color: '#F39C12', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
+                          ].map((item, idx) => {
+                            const barHeight = maxTech > 0 ? Math.max((item.value / maxTech) * 100, 4) : 4;
+                            const IconComponent = item.icon;
+                            return (
+                              <View key={idx} style={styles.btBreakdownVerticalBar}>
+                                <View style={styles.btBreakdownVerticalValueRow}>
+                                  <Text style={[styles.btBreakdownVerticalValue, { color: item.color }]}>{item.value}</Text>
+                                  {item.pending > 0 && (
+                                    <Text style={[styles.btBreakdownVerticalPending, { color: item.color }]}>+{item.pending}</Text>
+                                  )}
+                                </View>
+                                <View style={[styles.btBreakdownVerticalFill, { height: barHeight, backgroundColor: item.color }]} />
+                                <IconComponent size={14} color={item.color} style={{ marginTop: 6 }} />
+                                <Text style={styles.btBreakdownVerticalLabel}>{item.label}</Text>
                               </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.cut / maxTech) * 100, 2)}%`, backgroundColor: '#FF69B4' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#FF69B4' }]}>{btDistribution.cut}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.cut > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.cut}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <Palette size={16} color="#E74C3C" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>カラー</Text>
-                              </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.color / maxTech) * 100, 2)}%`, backgroundColor: '#E74C3C' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#E74C3C' }]}>{btDistribution.color}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.color > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.color}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <Waves size={16} color="#9B59B6" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>パーマ</Text>
-                              </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.perm / maxTech) * 100, 2)}%`, backgroundColor: '#9B59B6' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#9B59B6' }]}>{btDistribution.perm}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.perm > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.perm}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <AlignJustify size={16} color="#3498DB" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>縮毛矯正</Text>
-                              </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.straightening / maxTech) * 100, 2)}%`, backgroundColor: '#3498DB' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#3498DB' }]}>{btDistribution.straightening}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.straightening > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.straightening}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <Link size={16} color="#2ECC71" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>エクステ</Text>
-                              </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.extensions / maxTech) * 100, 2)}%`, backgroundColor: '#2ECC71' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#2ECC71' }]}>{btDistribution.extensions}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.extensions > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.extensions}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          <View style={[styles.btBreakdownItem, { paddingLeft: 32 }]}>
-                            <View style={styles.btBreakdownBarRow}>
-                              <View style={styles.btBreakdownBarLabel}>
-                                <Hand size={16} color="#F39C12" />
-                                <Text style={[styles.btBreakdownLabel, { fontSize: 12, marginLeft: 4 }]}>マッサージ</Text>
-                              </View>
-                              <View style={styles.btBreakdownBarTrack}>
-                                <View style={[styles.btBreakdownBarFill, { width: `${Math.max((btDistribution.massage / maxTech) * 100, 2)}%`, backgroundColor: '#F39C12' }]} />
-                              </View>
-                              <View style={styles.btBreakdownBarValue}>
-                                <Text style={[styles.btBreakdownBarAmount, { color: '#F39C12' }]}>{btDistribution.massage}</Text>
-                                <Text style={styles.btBreakdownBarUnit}>BP</Text>
-                                {pendingBTDistribution.massage > 0 && (
-                                  <Text style={styles.pendingBPTextSmall}>+{pendingBTDistribution.massage}</Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-                        </>
+                            );
+                          })}
+                        </View>
                       )}
                     </>
                   );
@@ -3096,49 +3007,44 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#7F8C8D',
   },
-  btBreakdownBarRow: {
+  btBreakdownVerticalContainer: {
     flexDirection: 'row' as const,
+    justifyContent: 'space-around' as const,
+    alignItems: 'flex-end' as const,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    backgroundColor: '#FAFBFC',
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  btBreakdownVerticalBar: {
     alignItems: 'center' as const,
-    flex: 1,
-    gap: 8,
+    width: 48,
   },
-  btBreakdownBarLabel: {
-    flexDirection: 'row' as const,
+  btBreakdownVerticalValueRow: {
     alignItems: 'center' as const,
-    width: 72,
+    marginBottom: 4,
   },
-  btBreakdownBarTrack: {
-    flex: 1,
-    height: 22,
-    backgroundColor: '#E8E8ED',
-    borderRadius: 11,
-    overflow: 'hidden' as const,
-  },
-  btBreakdownBarFill: {
-    height: '100%' as const,
-    borderRadius: 11,
-    minWidth: 2,
-  },
-  btBreakdownBarValue: {
-    flexDirection: 'row' as const,
-    alignItems: 'baseline' as const,
-    gap: 2,
-    width: 52,
-    justifyContent: 'flex-end' as const,
-  },
-  btBreakdownBarAmount: {
-    fontSize: 14,
+  btBreakdownVerticalValue: {
+    fontSize: 13,
     fontWeight: 'bold' as const,
   },
-  btBreakdownBarUnit: {
+  btBreakdownVerticalPending: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    marginTop: -2,
+  },
+  btBreakdownVerticalFill: {
+    width: 28,
+    borderRadius: 6,
+    minHeight: 4,
+  },
+  btBreakdownVerticalLabel: {
     fontSize: 10,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-  },
-  pendingBPTextSmall: {
-    fontSize: 9,
-    fontWeight: '600' as const,
-    color: '#D4AF37',
+    marginTop: 4,
+    textAlign: 'center' as const,
   },
   btTotalDivider: {
     height: 2,
