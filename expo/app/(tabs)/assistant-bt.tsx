@@ -32,11 +32,11 @@ export default function AssistantBTScreen() {
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
     { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
-    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#E74C3C' },
+    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#FF8C42' },
     { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
     { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
     { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
-    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F39C12' },
+    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
     { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
@@ -555,39 +555,44 @@ export default function AssistantBTScreen() {
                       return (
                         <>
                           <TouchableOpacity
-                            style={[styles.allocationCard, { borderLeftWidth: 3, borderLeftColor: '#87CEEB' }]}
+                            style={[styles.allocationCard, { borderLeftWidth: 3, borderLeftColor: '#FF69B4' }]}
                             onPress={() => setTechnicalExpanded(!technicalExpanded)}
                             activeOpacity={0.7}
                           >
                             <View style={styles.allocationHeader}>
                               <ChevronDown
                                 size={20}
-                                color="#87CEEB"
+                                color="#FF69B4"
                                 style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
                               />
-                              <Text style={[styles.allocationName, { color: '#87CEEB', fontWeight: 'bold' as const }]}>技術力</Text>
+                              <Text style={[styles.allocationName, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
                             </View>
                             <View style={styles.allocationAmountContainer}>
-                              <Text style={[styles.allocationAmount, { color: '#87CEEB' }]}>{techTotal}</Text>
+                              <Text style={[styles.allocationAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
                               <Text style={styles.allocationUnit}>BP</Text>
                             </View>
                           </TouchableOpacity>
                           {technicalExpanded && (() => {
                             const maxTechVal = Math.max(...techItems.map(a => a.amount), 1);
+                            const techTotalAmount = techItems.reduce((s, a) => s + a.amount, 0);
                             return (
-                              <View style={styles.allocationVerticalContainer}>
+                              <View style={styles.technicalBarChart}>
                                 {techItems.map((allocation) => {
                                   const IconComponent = allocation.icon;
-                                  const barHeight = Math.max((allocation.amount / maxTechVal) * 80, 4);
+                                  const barHeight = Math.max((allocation.amount / maxTechVal) * 140, 4);
+                                  const pct = techTotalAmount > 0 ? ((allocation.amount / techTotalAmount) * 100).toFixed(1) : '0.0';
                                   return (
-                                    <View key={allocation.id} style={styles.allocationVerticalBar}>
-                                      <View style={styles.allocationVerticalValueRow}>
-                                        <Text style={[styles.allocationVerticalValue, { color: allocation.color }]}>{allocation.amount}</Text>
-                                        <Text style={styles.allocationVerticalUnit}>BP</Text>
+                                    <View key={allocation.id} style={styles.technicalBarColumn}>
+                                      <IconComponent size={18} color={allocation.color} />
+                                      <View style={styles.technicalBarValue}>
+                                        <Text style={[styles.technicalBarValueText, { color: allocation.color }]}>{allocation.amount}</Text>
                                       </View>
-                                      <View style={[styles.allocationVerticalFill, { height: barHeight, backgroundColor: allocation.color }]} />
-                                      <IconComponent size={14} color={allocation.color} style={{ marginTop: 6 }} />
-                                      <Text style={styles.allocationVerticalLabel}>{allocation.name}</Text>
+                                      <Text style={styles.technicalBarUnit}>BP</Text>
+                                      <View style={styles.technicalBarTrack}>
+                                        <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: allocation.color }]} />
+                                      </View>
+                                      <Text style={[styles.technicalBarPercent, { color: allocation.color }]}>{pct}%</Text>
+                                      <Text style={styles.technicalBarLabel}>{allocation.name}</Text>
                                       <View style={styles.allocationVerticalControls}>
                                         <TouchableOpacity
                                           style={styles.allocationMiniButton}
@@ -1045,44 +1050,65 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  allocationVerticalContainer: {
+  technicalBarChart: {
     flexDirection: 'row' as const,
     justifyContent: 'space-around' as const,
     alignItems: 'flex-end' as const,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    backgroundColor: '#F4F4F9',
-    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     marginBottom: 8,
     marginLeft: 8,
+    minHeight: 240,
   },
-  allocationVerticalBar: {
+  technicalBarColumn: {
     alignItems: 'center' as const,
-    width: 46,
+    width: 52,
+    gap: 4,
   },
-  allocationVerticalValueRow: {
-    alignItems: 'center' as const,
-    marginBottom: 4,
+  technicalBarValue: {
+    flexDirection: 'row' as const,
+    alignItems: 'baseline' as const,
+    gap: 2,
   },
-  allocationVerticalValue: {
+  technicalBarValueText: {
     fontSize: 13,
     fontWeight: 'bold' as const,
   },
-  allocationVerticalUnit: {
+  technicalBarUnit: {
     fontSize: 9,
     fontWeight: '600' as const,
     color: '#7F8C8D',
+    marginTop: -2,
   },
-  allocationVerticalFill: {
-    width: 24,
-    borderRadius: 5,
+  technicalBarTrack: {
+    width: 32,
+    height: 140,
+    backgroundColor: '#F0F2F5',
+    borderRadius: 16,
+    justifyContent: 'flex-end' as const,
+    alignItems: 'center' as const,
+    overflow: 'hidden' as const,
+    marginTop: 4,
+  },
+  technicalBarFill: {
+    width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
     minHeight: 4,
   },
-  allocationVerticalLabel: {
-    fontSize: 9,
+  technicalBarPercent: {
+    fontSize: 11,
+    fontWeight: 'bold' as const,
+    marginTop: 4,
+  },
+  technicalBarLabel: {
+    fontSize: 10,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-    marginTop: 4,
     textAlign: 'center' as const,
   },
   allocationVerticalControls: {

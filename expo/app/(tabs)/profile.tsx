@@ -651,23 +651,30 @@ export default function ProfileScreen() {
                         const maxTech = Math.max(distribution.cut, distribution.color, distribution.perm, distribution.straightening, distribution.extensions, distribution.massage, 1);
                         const items = [
                           { icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut },
-                          { icon: Palette, color: '#E74C3C', label: 'カラー', value: distribution.color },
+                          { icon: Palette, color: '#FF8C42', label: 'カラー', value: distribution.color },
                           { icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm },
                           { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
                           { icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
-                          { icon: Hand, color: '#F39C12', label: 'マッサージ', value: distribution.massage },
+                          { icon: Hand, color: '#F1C40F', label: 'マッサージ', value: distribution.massage },
                         ];
                         return (
-                          <View style={styles.btDistributionVerticalContainer}>
+                          <View style={styles.technicalBarChart}>
                             {items.map((item, idx) => {
-                              const barHeight = Math.max((item.value / maxTech) * 100, 4);
+                              const barHeight = Math.max((item.value / maxTech) * 140, 4);
+                              const pct = techTotal > 0 ? ((item.value / techTotal) * 100).toFixed(1) : '0.0';
                               const IconComponent = item.icon;
                               return (
-                                <View key={idx} style={styles.btDistributionVerticalBar}>
-                                  <Text style={[styles.btDistributionVerticalValue, { color: item.color }]}>{item.value}</Text>
-                                  <View style={[styles.btDistributionVerticalFill, { height: barHeight, backgroundColor: item.color }]} />
-                                  <IconComponent size={14} color={item.color} style={{ marginTop: 6 }} />
-                                  <Text style={styles.btDistributionVerticalLabel}>{item.label}</Text>
+                                <View key={idx} style={styles.technicalBarColumn}>
+                                  <IconComponent size={18} color={item.color} />
+                                  <View style={styles.technicalBarValue}>
+                                    <Text style={[styles.technicalBarValueText, { color: item.color }]}>{item.value}</Text>
+                                  </View>
+                                  <Text style={styles.technicalBarUnit}>BP</Text>
+                                  <View style={styles.technicalBarTrack}>
+                                    <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: item.color }]} />
+                                  </View>
+                                  <Text style={[styles.technicalBarPercent, { color: item.color }]}>{pct}%</Text>
+                                  <Text style={styles.technicalBarLabel}>{item.label}</Text>
                                 </View>
                               );
                             })}
@@ -2350,35 +2357,64 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
     textAlign: 'center' as const,
   },
-  btDistributionVerticalContainer: {
+  technicalBarChart: {
     flexDirection: 'row' as const,
     justifyContent: 'space-around' as const,
     alignItems: 'flex-end' as const,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 8,
-    backgroundColor: '#FAFBFC',
-    borderRadius: 12,
-    marginBottom: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 8,
+    minHeight: 220,
   },
-  btDistributionVerticalBar: {
+  technicalBarColumn: {
     alignItems: 'center' as const,
-    width: 48,
+    width: 52,
+    gap: 4,
   },
-  btDistributionVerticalValue: {
+  technicalBarValue: {
+    flexDirection: 'row' as const,
+    alignItems: 'baseline' as const,
+    gap: 2,
+  },
+  technicalBarValueText: {
     fontSize: 13,
     fontWeight: 'bold' as const,
-    marginBottom: 4,
   },
-  btDistributionVerticalFill: {
-    width: 28,
-    borderRadius: 6,
+  technicalBarUnit: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+    marginTop: -2,
+  },
+  technicalBarTrack: {
+    width: 32,
+    height: 140,
+    backgroundColor: '#F0F2F5',
+    borderRadius: 16,
+    justifyContent: 'flex-end' as const,
+    alignItems: 'center' as const,
+    overflow: 'hidden' as const,
+    marginTop: 4,
+  },
+  technicalBarFill: {
+    width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
     minHeight: 4,
   },
-  btDistributionVerticalLabel: {
+  technicalBarPercent: {
+    fontSize: 11,
+    fontWeight: 'bold' as const,
+    marginTop: 4,
+  },
+  technicalBarLabel: {
     fontSize: 10,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-    marginTop: 4,
     textAlign: 'center' as const,
   },
   btDistributionSummary: {

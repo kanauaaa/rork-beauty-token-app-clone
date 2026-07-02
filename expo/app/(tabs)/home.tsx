@@ -675,28 +675,33 @@ function HomeContent() {
                       </TouchableOpacity>
 
                       {technicalExpanded && (
-                        <View style={styles.btBreakdownVerticalContainer}>
+                        <View style={styles.technicalBarChart}>
                           {[
                             { icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut },
-                            { icon: Palette, color: '#E74C3C', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
+                            { icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
                             { icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm },
                             { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
                             { icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
-                            { icon: Hand, color: '#F39C12', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
+                            { icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
                           ].map((item, idx) => {
-                            const barHeight = maxTech > 0 ? Math.max((item.value / maxTech) * 100, 4) : 4;
+                            const barHeight = maxTech > 0 ? Math.max((item.value / maxTech) * 140, 4) : 4;
+                            const pct = techTotal > 0 ? ((item.value / techTotal) * 100).toFixed(1) : '0.0';
                             const IconComponent = item.icon;
                             return (
-                              <View key={idx} style={styles.btBreakdownVerticalBar}>
-                                <View style={styles.btBreakdownVerticalValueRow}>
-                                  <Text style={[styles.btBreakdownVerticalValue, { color: item.color }]}>{item.value}</Text>
+                              <View key={idx} style={styles.technicalBarColumn}>
+                                <IconComponent size={18} color={item.color} />
+                                <View style={styles.technicalBarValue}>
+                                  <Text style={[styles.technicalBarValueText, { color: item.color }]}>{item.value}</Text>
                                   {item.pending > 0 && (
-                                    <Text style={[styles.btBreakdownVerticalPending, { color: item.color }]}>+{item.pending}</Text>
+                                    <Text style={[styles.technicalBarPending, { color: item.color }]}>+{item.pending}</Text>
                                   )}
                                 </View>
-                                <View style={[styles.btBreakdownVerticalFill, { height: barHeight, backgroundColor: item.color }]} />
-                                <IconComponent size={14} color={item.color} style={{ marginTop: 6 }} />
-                                <Text style={styles.btBreakdownVerticalLabel}>{item.label}</Text>
+                                <Text style={styles.technicalBarUnit}>BP</Text>
+                                <View style={styles.technicalBarTrack}>
+                                  <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: item.color }]} />
+                                </View>
+                                <Text style={[styles.technicalBarPercent, { color: item.color }]}>{pct}%</Text>
+                                <Text style={styles.technicalBarLabel}>{item.label}</Text>
                               </View>
                             );
                           })}
@@ -3007,43 +3012,69 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#7F8C8D',
   },
-  btBreakdownVerticalContainer: {
+  technicalBarChart: {
     flexDirection: 'row' as const,
     justifyContent: 'space-around' as const,
     alignItems: 'flex-end' as const,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 8,
-    backgroundColor: '#FAFBFC',
-    borderRadius: 12,
-    marginBottom: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 8,
+    minHeight: 220,
   },
-  btBreakdownVerticalBar: {
+  technicalBarColumn: {
     alignItems: 'center' as const,
-    width: 48,
+    width: 52,
+    gap: 4,
   },
-  btBreakdownVerticalValueRow: {
-    alignItems: 'center' as const,
-    marginBottom: 4,
+  technicalBarValue: {
+    flexDirection: 'row' as const,
+    alignItems: 'baseline' as const,
+    gap: 2,
   },
-  btBreakdownVerticalValue: {
+  technicalBarValueText: {
     fontSize: 13,
     fontWeight: 'bold' as const,
   },
-  btBreakdownVerticalPending: {
+  technicalBarPending: {
     fontSize: 9,
     fontWeight: '600' as const,
+    marginLeft: 2,
+  },
+  technicalBarUnit: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
     marginTop: -2,
   },
-  btBreakdownVerticalFill: {
-    width: 28,
-    borderRadius: 6,
+  technicalBarTrack: {
+    width: 32,
+    height: 140,
+    backgroundColor: '#F0F2F5',
+    borderRadius: 16,
+    justifyContent: 'flex-end' as const,
+    alignItems: 'center' as const,
+    overflow: 'hidden' as const,
+    marginTop: 4,
+  },
+  technicalBarFill: {
+    width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
     minHeight: 4,
   },
-  btBreakdownVerticalLabel: {
+  technicalBarPercent: {
+    fontSize: 11,
+    fontWeight: 'bold' as const,
+    marginTop: 4,
+  },
+  technicalBarLabel: {
     fontSize: 10,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-    marginTop: 4,
     textAlign: 'center' as const,
   },
   btTotalDivider: {

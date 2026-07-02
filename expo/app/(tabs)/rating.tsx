@@ -73,11 +73,11 @@ function RatingContent() {
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
     { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
-    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#E74C3C' },
+    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#FF8C42' },
     { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
     { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
     { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
-    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F39C12' },
+    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
     { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'assistant', name: 'アシスタント', amount: 0, icon: Users, color: '#87CEEB' },
@@ -1358,37 +1358,49 @@ Alert.alert(
                             <Text style={styles.allocationUnit}>BP</Text>
                           </View>
                         </TouchableOpacity>
-                        {technicalExpanded && techItems.map((allocation) => {
-                          const IconComponent = allocation.icon;
+                        {technicalExpanded && (() => {
+                          const maxTechVal = Math.max(...techItems.map(a => a.amount), 1);
+                          const techTotalAmount = techItems.reduce((s, a) => s + a.amount, 0);
                           return (
-                            <View key={allocation.id} style={[styles.allocationCard, { marginLeft: 8, backgroundColor: '#F4F4F9' }]}>
-                              <View style={styles.allocationHeader}>
-                                <IconComponent size={20} color={allocation.color} />
-                                <Text style={[styles.allocationName, { fontSize: 14 }]}>{allocation.name}</Text>
-                              </View>
-                              <View style={styles.allocationControls}>
-                                <TouchableOpacity
-                                  style={styles.allocationButton}
-                                  onPress={() => updateBTAllocation(allocation.id, -1)}
-                                  disabled={allocation.amount === 0}
-                                >
-                                  <Minus size={18} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                </TouchableOpacity>
-                                <View style={styles.allocationAmountContainer}>
-                                  <Text style={[styles.allocationAmount, { fontSize: 16 }]}>{allocation.amount}</Text>
-                                  <Text style={styles.allocationUnit}>BP</Text>
-                                </View>
-                                <TouchableOpacity
-                                  style={styles.allocationButton}
-                                  onPress={() => updateBTAllocation(allocation.id, 1)}
-                                  disabled={remainingBT <= 0}
-                                >
-                                  <Plus size={18} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                </TouchableOpacity>
-                              </View>
+                            <View style={styles.technicalBarChart}>
+                              {techItems.map((allocation) => {
+                                const IconComponent = allocation.icon;
+                                const barHeight = Math.max((allocation.amount / maxTechVal) * 140, 4);
+                                const pct = techTotalAmount > 0 ? ((allocation.amount / techTotalAmount) * 100).toFixed(1) : '0.0';
+                                return (
+                                  <View key={allocation.id} style={styles.technicalBarColumn}>
+                                    <IconComponent size={18} color={allocation.color} />
+                                    <View style={styles.technicalBarValue}>
+                                      <Text style={[styles.technicalBarValueText, { color: allocation.color }]}>{allocation.amount}</Text>
+                                    </View>
+                                    <Text style={styles.technicalBarUnit}>BP</Text>
+                                    <View style={styles.technicalBarTrack}>
+                                      <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: allocation.color }]} />
+                                    </View>
+                                    <Text style={[styles.technicalBarPercent, { color: allocation.color }]}>{pct}%</Text>
+                                    <Text style={styles.technicalBarLabel}>{allocation.name}</Text>
+                                    <View style={styles.ratingBarControls}>
+                                      <TouchableOpacity
+                                        style={styles.ratingBarButton}
+                                        onPress={() => updateBTAllocation(allocation.id, -1)}
+                                        disabled={allocation.amount === 0}
+                                      >
+                                        <Minus size={14} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                      </TouchableOpacity>
+                                      <TouchableOpacity
+                                        style={styles.ratingBarButton}
+                                        onPress={() => updateBTAllocation(allocation.id, 1)}
+                                        disabled={remainingBT <= 0}
+                                      >
+                                        <Plus size={14} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
+                                );
+                              })}
                             </View>
                           );
-                        })}
+                        })()}
                         {otherItems.map((allocation) => {
                           const IconComponent = allocation.icon;
                           return (
@@ -2229,6 +2241,85 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600' as const,
     color: '#7F8C8D',
+  },
+  technicalBarChart: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-around' as const,
+    alignItems: 'flex-end' as const,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 12,
+    marginLeft: 8,
+    minHeight: 240,
+  },
+  technicalBarColumn: {
+    alignItems: 'center' as const,
+    width: 52,
+    gap: 4,
+  },
+  technicalBarValue: {
+    flexDirection: 'row' as const,
+    alignItems: 'baseline' as const,
+    gap: 2,
+  },
+  technicalBarValueText: {
+    fontSize: 13,
+    fontWeight: 'bold' as const,
+  },
+  technicalBarUnit: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+    marginTop: -2,
+  },
+  technicalBarTrack: {
+    width: 32,
+    height: 140,
+    backgroundColor: '#F0F2F5',
+    borderRadius: 16,
+    justifyContent: 'flex-end' as const,
+    alignItems: 'center' as const,
+    overflow: 'hidden' as const,
+    marginTop: 4,
+  },
+  technicalBarFill: {
+    width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    minHeight: 4,
+  },
+  technicalBarPercent: {
+    fontSize: 11,
+    fontWeight: 'bold' as const,
+    marginTop: 4,
+  },
+  technicalBarLabel: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+    textAlign: 'center' as const,
+  },
+  ratingBarControls: {
+    flexDirection: 'row' as const,
+    gap: 8,
+    marginTop: 8,
+  },
+  ratingBarButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'white',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   commentLabel: {
     fontSize: 14,
