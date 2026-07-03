@@ -15,6 +15,8 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
+import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
+import CategoryProgressBar from '@/components/CategoryProgressBar';
 import { createCustomerQR, validateQRCode, serializeQRData, QRData } from '@/lib/qr-utils';
 import { getStorageInstance } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -1335,9 +1337,16 @@ Alert.alert(
                   </Text>
                   {(() => {
                     const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
-                    const techItems = btAllocations.filter(a => techIds.includes(a.id));
+                    const techAllocations = btAllocations.filter(a => techIds.includes(a.id));
                     const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
-                    const techTotal = techItems.reduce((s, a) => s + a.amount, 0);
+                    const techTotal = techAllocations.reduce((s, a) => s + a.amount, 0);
+                    const techSkillItems: SkillItem[] = techAllocations.map(a => ({
+                      id: a.id,
+                      icon: a.icon,
+                      color: a.color,
+                      label: a.name,
+                      value: a.amount,
+                    }));
                     return (
                       <>
                         <TouchableOpacity
@@ -1358,78 +1367,65 @@ Alert.alert(
                             <Text style={styles.allocationUnit}>BP</Text>
                           </View>
                         </TouchableOpacity>
-                        {technicalExpanded && (() => {
-                          const maxTechVal = Math.max(...techItems.map(a => a.amount), 1);
-                          const techTotalAmount = techItems.reduce((s, a) => s + a.amount, 0);
-                          return (
-                            <View style={styles.technicalBarChart}>
-                              {techItems.map((allocation) => {
-                                const IconComponent = allocation.icon;
-                                const barHeight = Math.max((allocation.amount / maxTechVal) * 140, 4);
-                                const pct = techTotalAmount > 0 ? ((allocation.amount / techTotalAmount) * 100).toFixed(1) : '0.0';
-                                return (
-                                  <View key={allocation.id} style={styles.technicalBarColumn}>
-                                    <IconComponent size={18} color={allocation.color} />
-                                    <View style={styles.technicalBarValue}>
-                                      <Text style={[styles.technicalBarValueText, { color: allocation.color }]}>{allocation.amount}</Text>
-                                    </View>
-                                    <Text style={styles.technicalBarUnit}>BP</Text>
-                                    <View style={styles.technicalBarTrack}>
-                                      <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: allocation.color }]} />
-                                    </View>
-                                    <Text style={[styles.technicalBarPercent, { color: allocation.color }]}>{pct}%</Text>
-                                    <Text style={styles.technicalBarLabel}>{allocation.name}</Text>
-                                    <View style={styles.ratingBarControls}>
-                                      <TouchableOpacity
-                                        style={styles.ratingBarButton}
-                                        onPress={() => updateBTAllocation(allocation.id, -1)}
-                                        disabled={allocation.amount === 0}
-                                      >
-                                        <Minus size={14} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                      </TouchableOpacity>
-                                      <TouchableOpacity
-                                        style={styles.ratingBarButton}
-                                        onPress={() => updateBTAllocation(allocation.id, 1)}
-                                        disabled={remainingBT <= 0}
-                                      >
-                                        <Plus size={14} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
-                                );
-                              })}
-                            </View>
-                          );
-                        })()}
+
+                        {technicalExpanded && (
+                          <View style={{ marginLeft: 8, marginBottom: 12 }}>
+                            <TechnicalSkillChart
+                              items={techSkillItems}
+                              total={techTotal}
+                              interactive
+                              onAdjust={(id, delta) => updateBTAllocation(id, delta)}
+                              canIncrease={() => remainingBT > 0}
+                              canDecrease={(id) => techAllocations.find(a => a.id === id)?.amount !== 0}
+                            />
+                          </View>
+                        )}
+
                         {otherItems.map((allocation) => {
-                          const IconComponent = allocation.icon;
-                          return (
-                            <View key={allocation.id} style={styles.allocationCard}>
-                              <View style={styles.allocationHeader}>
-                                <IconComponent size={24} color={allocation.color} />
-                                <Text style={styles.allocationName}>{allocation.name}</Text>
-                              </View>
-                              <View style={styles.allocationControls}>
-                                <TouchableOpacity
-                                  style={styles.allocationButton}
-                                  onPress={() => updateBTAllocation(allocation.id, -1)}
-                                  disabled={allocation.amount === 0}
-                                >
-                                  <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                </TouchableOpacity>
-                                <View style={styles.allocationAmountContainer}>
-                                  <Text style={styles.allocationAmount}>{allocation.amount}</Text>
-                                  <Text style={styles.allocationUnit}>BP</Text>
+                          if (allocation.id === 'discarded') {
+                            const IconComponent = allocation.icon;
+                            return (
+                              <View key={allocation.id} style={styles.allocationCard}>
+                                <View style={styles.allocationHeader}>
+                                  <IconComponent size={24} color={allocation.color} />
+                                  <Text style={styles.allocationName}>{allocation.name}</Text>
                                 </View>
-                                <TouchableOpacity
-                                  style={styles.allocationButton}
-                                  onPress={() => updateBTAllocation(allocation.id, 1)}
-                                  disabled={remainingBT <= 0}
-                                >
-                                  <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                </TouchableOpacity>
+                                <View style={styles.allocationControls}>
+                                  <TouchableOpacity
+                                    style={styles.allocationButton}
+                                    onPress={() => updateBTAllocation(allocation.id, -1)}
+                                    disabled={allocation.amount === 0}
+                                  >
+                                    <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                                  </TouchableOpacity>
+                                  <View style={styles.allocationAmountContainer}>
+                                    <Text style={styles.allocationAmount}>{allocation.amount}</Text>
+                                    <Text style={styles.allocationUnit}>BP</Text>
+                                  </View>
+                                  <TouchableOpacity
+                                    style={styles.allocationButton}
+                                    onPress={() => updateBTAllocation(allocation.id, 1)}
+                                    disabled={remainingBT <= 0}
+                                  >
+                                    <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                                  </TouchableOpacity>
+                                </View>
                               </View>
-                            </View>
+                            );
+                          }
+                          return (
+                            <CategoryProgressBar
+                              key={allocation.id}
+                              icon={allocation.icon}
+                              color={allocation.color}
+                              label={allocation.name}
+                              value={allocation.amount}
+                              maxValue={totalBT}
+                              interactive
+                              onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
+                              canIncrease={remainingBT > 0}
+                              canDecrease={allocation.amount > 0}
+                            />
                           );
                         })}
                       </>
@@ -2241,85 +2237,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-  },
-  technicalBarChart: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-around' as const,
-    alignItems: 'flex-end' as const,
-    paddingVertical: 20,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 12,
-    marginLeft: 8,
-    minHeight: 240,
-  },
-  technicalBarColumn: {
-    alignItems: 'center' as const,
-    width: 52,
-    gap: 4,
-  },
-  technicalBarValue: {
-    flexDirection: 'row' as const,
-    alignItems: 'baseline' as const,
-    gap: 2,
-  },
-  technicalBarValueText: {
-    fontSize: 13,
-    fontWeight: 'bold' as const,
-  },
-  technicalBarUnit: {
-    fontSize: 9,
-    fontWeight: '600' as const,
-    color: '#7F8C8D',
-    marginTop: -2,
-  },
-  technicalBarTrack: {
-    width: 32,
-    height: 140,
-    backgroundColor: '#F0F2F5',
-    borderRadius: 16,
-    justifyContent: 'flex-end' as const,
-    alignItems: 'center' as const,
-    overflow: 'hidden' as const,
-    marginTop: 4,
-  },
-  technicalBarFill: {
-    width: '100%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-    minHeight: 4,
-  },
-  technicalBarPercent: {
-    fontSize: 11,
-    fontWeight: 'bold' as const,
-    marginTop: 4,
-  },
-  technicalBarLabel: {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    color: '#7F8C8D',
-    textAlign: 'center' as const,
-  },
-  ratingBarControls: {
-    flexDirection: 'row' as const,
-    gap: 8,
-    marginTop: 8,
-  },
-  ratingBarButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'white',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   commentLabel: {
     fontSize: 14,

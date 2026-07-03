@@ -12,6 +12,8 @@ import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
 import { createCustomerQR, createHairdresserQR, createHairdresserReferralQR, getQRCodeInfo, serializeQRData, validateQRCode } from '@/lib/qr-utils';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
+import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
+import CategoryProgressBar from '@/components/CategoryProgressBar';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useWeb3 } from '@/providers/Web3Provider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -630,7 +632,15 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>評価項目別獲得BP</Text>
               <View style={styles.btDistributionGrid}>
                 {(() => {
-                  const techTotal = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage;
+                  const techItems: SkillItem[] = [
+                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut },
+                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: distribution.color },
+                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm },
+                    { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
+                    { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
+                    { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: distribution.massage },
+                  ];
+                  const techTotal = techItems.reduce((s, item) => s + item.value, 0);
                   return (
                     <>
                       <TouchableOpacity
@@ -647,58 +657,38 @@ export default function ProfileScreen() {
                         <Text style={[styles.btDistributionLabel, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
                       </TouchableOpacity>
 
-                      {technicalExpanded && (() => {
-                        const maxTech = Math.max(distribution.cut, distribution.color, distribution.perm, distribution.straightening, distribution.extensions, distribution.massage, 1);
-                        const items = [
-                          { icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut },
-                          { icon: Palette, color: '#FF8C42', label: 'カラー', value: distribution.color },
-                          { icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm },
-                          { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
-                          { icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
-                          { icon: Hand, color: '#F1C40F', label: 'マッサージ', value: distribution.massage },
-                        ];
-                        return (
-                          <View style={styles.technicalBarChart}>
-                            {items.map((item, idx) => {
-                              const barHeight = Math.max((item.value / maxTech) * 140, 4);
-                              const pct = techTotal > 0 ? ((item.value / techTotal) * 100).toFixed(1) : '0.0';
-                              const IconComponent = item.icon;
-                              return (
-                                <View key={idx} style={styles.technicalBarColumn}>
-                                  <IconComponent size={18} color={item.color} />
-                                  <View style={styles.technicalBarValue}>
-                                    <Text style={[styles.technicalBarValueText, { color: item.color }]}>{item.value}</Text>
-                                  </View>
-                                  <Text style={styles.technicalBarUnit}>BP</Text>
-                                  <View style={styles.technicalBarTrack}>
-                                    <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: item.color }]} />
-                                  </View>
-                                  <Text style={[styles.technicalBarPercent, { color: item.color }]}>{pct}%</Text>
-                                  <Text style={styles.technicalBarLabel}>{item.label}</Text>
-                                </View>
-                              );
-                            })}
-                          </View>
-                        );
-                      })()}
+                      {technicalExpanded && (
+                        <View style={{ marginBottom: 12 }}>
+                          <TechnicalSkillChart items={techItems} total={techTotal} />
+                        </View>
+                      )}
+
+                      <CategoryProgressBar
+                        icon={Heart}
+                        color="#FF69B4"
+                        label="接客・サービス"
+                        value={distribution.service}
+                        maxValue={distribution.total}
+                      />
+
+                      <CategoryProgressBar
+                        icon={Clock}
+                        color="#3498DB"
+                        label="時間管理"
+                        value={distribution.timeManagement}
+                        maxValue={distribution.total}
+                      />
+
+                      <CategoryProgressBar
+                        icon={UsersIcon}
+                        color="#87CEEB"
+                        label="アシスタント"
+                        value={distribution.assistant}
+                        maxValue={distribution.total}
+                      />
                     </>
                   );
                 })()}
-                <View style={styles.btDistributionCard}>
-                  <Heart size={20} color="#FF69B4" />
-                  <Text style={styles.btDistributionValue}>{distribution.service}</Text>
-                  <Text style={styles.btDistributionLabel}>接客</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <Clock size={20} color="#FF69B4" />
-                  <Text style={styles.btDistributionValue}>{distribution.timeManagement}</Text>
-                  <Text style={styles.btDistributionLabel}>時間管理</Text>
-                </View>
-                <View style={styles.btDistributionCard}>
-                  <UsersIcon size={20} color="#87CEEB" />
-                  <Text style={styles.btDistributionValue}>{distribution.assistant}</Text>
-                  <Text style={styles.btDistributionLabel}>アシスタント</Text>
-                </View>
               </View>
               <View style={styles.btDistributionSummary}>
                 <Text style={styles.btDistributionSummaryLabel}>合計</Text>
@@ -2354,66 +2344,6 @@ const styles = StyleSheet.create({
   },
   btDistributionLabel: {
     fontSize: 12,
-    color: '#7F8C8D',
-    textAlign: 'center' as const,
-  },
-  technicalBarChart: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-around' as const,
-    alignItems: 'flex-end' as const,
-    paddingVertical: 20,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 8,
-    minHeight: 220,
-  },
-  technicalBarColumn: {
-    alignItems: 'center' as const,
-    width: 52,
-    gap: 4,
-  },
-  technicalBarValue: {
-    flexDirection: 'row' as const,
-    alignItems: 'baseline' as const,
-    gap: 2,
-  },
-  technicalBarValueText: {
-    fontSize: 13,
-    fontWeight: 'bold' as const,
-  },
-  technicalBarUnit: {
-    fontSize: 9,
-    fontWeight: '600' as const,
-    color: '#7F8C8D',
-    marginTop: -2,
-  },
-  technicalBarTrack: {
-    width: 32,
-    height: 140,
-    backgroundColor: '#F0F2F5',
-    borderRadius: 16,
-    justifyContent: 'flex-end' as const,
-    alignItems: 'center' as const,
-    overflow: 'hidden' as const,
-    marginTop: 4,
-  },
-  technicalBarFill: {
-    width: '100%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-    minHeight: 4,
-  },
-  technicalBarPercent: {
-    fontSize: 11,
-    fontWeight: 'bold' as const,
-    marginTop: 4,
-  },
-  technicalBarLabel: {
-    fontSize: 10,
-    fontWeight: '600' as const,
     color: '#7F8C8D',
     textAlign: 'center' as const,
   },

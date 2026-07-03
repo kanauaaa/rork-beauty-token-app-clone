@@ -10,6 +10,8 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import QRCodeComponent from '@/components/QRCode';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
+import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
+import CategoryProgressBar from '@/components/CategoryProgressBar';
 
 import AdBanner from '@/components/AdBanner';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
@@ -643,11 +645,18 @@ function HomeContent() {
               </View>
               
               <View style={styles.btBreakdownCard}>
-                {/* 技術力 group */}
                 {(() => {
-                  const techTotal = btDistribution.cut + btDistribution.color + btDistribution.perm + btDistribution.straightening + btDistribution.extensions + btDistribution.massage;
-                  const pendingTechTotal = pendingBTDistribution.cut + pendingBTDistribution.color + pendingBTDistribution.perm + pendingBTDistribution.straightening + pendingBTDistribution.extensions + pendingBTDistribution.massage;
-                  const maxTech = Math.max(btDistribution.cut, btDistribution.color, btDistribution.perm, btDistribution.straightening, btDistribution.extensions, btDistribution.massage, 1);
+                  const techItems: SkillItem[] = [
+                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut },
+                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
+                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm },
+                    { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
+                    { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
+                    { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
+                  ];
+                  const techTotal = techItems.reduce((s, item) => s + item.value, 0);
+                  const pendingTechTotal = techItems.reduce((s, item) => s + (item.pending || 0), 0);
+                  const grandTotal = btDistribution.total;
                   return (
                     <>
                       <TouchableOpacity
@@ -675,89 +684,40 @@ function HomeContent() {
                       </TouchableOpacity>
 
                       {technicalExpanded && (
-                        <View style={styles.technicalBarChart}>
-                          {[
-                            { icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut },
-                            { icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
-                            { icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm },
-                            { icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
-                            { icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
-                            { icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
-                          ].map((item, idx) => {
-                            const barHeight = maxTech > 0 ? Math.max((item.value / maxTech) * 140, 4) : 4;
-                            const pct = techTotal > 0 ? ((item.value / techTotal) * 100).toFixed(1) : '0.0';
-                            const IconComponent = item.icon;
-                            return (
-                              <View key={idx} style={styles.technicalBarColumn}>
-                                <IconComponent size={18} color={item.color} />
-                                <View style={styles.technicalBarValue}>
-                                  <Text style={[styles.technicalBarValueText, { color: item.color }]}>{item.value}</Text>
-                                  {item.pending > 0 && (
-                                    <Text style={[styles.technicalBarPending, { color: item.color }]}>+{item.pending}</Text>
-                                  )}
-                                </View>
-                                <Text style={styles.technicalBarUnit}>BP</Text>
-                                <View style={styles.technicalBarTrack}>
-                                  <View style={[styles.technicalBarFill, { height: barHeight, backgroundColor: item.color }]} />
-                                </View>
-                                <Text style={[styles.technicalBarPercent, { color: item.color }]}>{pct}%</Text>
-                                <Text style={styles.technicalBarLabel}>{item.label}</Text>
-                              </View>
-                            );
-                          })}
+                        <View style={{ marginLeft: 8, marginBottom: 12 }}>
+                          <TechnicalSkillChart items={techItems} total={techTotal} />
                         </View>
                       )}
+
+                      <CategoryProgressBar
+                        icon={Heart}
+                        color="#FF69B4"
+                        label="接客・サービス"
+                        value={btDistribution.service}
+                        pending={pendingBTDistribution.service}
+                        maxValue={grandTotal}
+                      />
+
+                      <CategoryProgressBar
+                        icon={Clock}
+                        color="#3498DB"
+                        label="時間管理"
+                        value={btDistribution.timeManagement}
+                        pending={pendingBTDistribution.timeManagement}
+                        maxValue={grandTotal}
+                      />
+
+                      <CategoryProgressBar
+                        icon={Users}
+                        color="#87CEEB"
+                        label="アシスタント"
+                        value={totalAssistantBT}
+                        pending={pendingBTDistribution.assistant}
+                        maxValue={grandTotal}
+                      />
                     </>
                   );
                 })()}
-
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Heart size={20} color="#FF69B4" />
-                    <Text style={styles.btBreakdownLabel}>接客・サービス</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.service}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.service > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.service}（仮）</Text>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Clock size={20} color="#FF69B4" />
-                    <Text style={styles.btBreakdownLabel}>時間管理</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{btDistribution.timeManagement}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.timeManagement > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.timeManagement}（仮）</Text>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.btBreakdownItem}>
-                  <View style={styles.btBreakdownHeader}>
-                    <Users size={20} color="#87CEEB" />
-                    <Text style={styles.btBreakdownLabel}>アシスタント</Text>
-                  </View>
-                  <View style={styles.btBreakdownValueColumn}>
-                    <View style={styles.btBreakdownValue}>
-                      <Text style={styles.btBreakdownAmount}>{totalAssistantBT}</Text>
-                      <Text style={styles.btBreakdownUnit}>BP</Text>
-                    </View>
-                    {pendingBTDistribution.assistant > 0 && (
-                      <Text style={styles.pendingBPText}>+{pendingBTDistribution.assistant}（仮）</Text>
-                    )}
-                  </View>
-                </View>
 
                 <View style={styles.btTotalDivider} />
 
@@ -3011,71 +2971,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#7F8C8D',
-  },
-  technicalBarChart: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-around' as const,
-    alignItems: 'flex-end' as const,
-    paddingVertical: 20,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 8,
-    minHeight: 220,
-  },
-  technicalBarColumn: {
-    alignItems: 'center' as const,
-    width: 52,
-    gap: 4,
-  },
-  technicalBarValue: {
-    flexDirection: 'row' as const,
-    alignItems: 'baseline' as const,
-    gap: 2,
-  },
-  technicalBarValueText: {
-    fontSize: 13,
-    fontWeight: 'bold' as const,
-  },
-  technicalBarPending: {
-    fontSize: 9,
-    fontWeight: '600' as const,
-    marginLeft: 2,
-  },
-  technicalBarUnit: {
-    fontSize: 9,
-    fontWeight: '600' as const,
-    color: '#7F8C8D',
-    marginTop: -2,
-  },
-  technicalBarTrack: {
-    width: 32,
-    height: 140,
-    backgroundColor: '#F0F2F5',
-    borderRadius: 16,
-    justifyContent: 'flex-end' as const,
-    alignItems: 'center' as const,
-    overflow: 'hidden' as const,
-    marginTop: 4,
-  },
-  technicalBarFill: {
-    width: '100%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-    minHeight: 4,
-  },
-  technicalBarPercent: {
-    fontSize: 11,
-    fontWeight: 'bold' as const,
-    marginTop: 4,
-  },
-  technicalBarLabel: {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    color: '#7F8C8D',
-    textAlign: 'center' as const,
   },
   btTotalDivider: {
     height: 2,
