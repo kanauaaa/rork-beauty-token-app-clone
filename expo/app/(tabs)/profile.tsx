@@ -666,7 +666,7 @@ export default function ProfileScreen() {
                       <CategoryProgressBar
                         icon={Heart}
                         color="#FF69B4"
-                        label="接客・サービス"
+                        label="接客・カウンセリング"
                         value={distribution.service}
                         maxValue={distribution.total}
                       />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Minus, Plus } from 'lucide-react-native';
+import { Minus, Plus, Info } from 'lucide-react-native';
 
 interface CategoryProgressBarProps {
   icon: React.ComponentType<{ size: number; color: string }>;
@@ -13,6 +13,8 @@ interface CategoryProgressBarProps {
   onAdjust?: (delta: number) => void;
   canIncrease?: boolean;
   canDecrease?: boolean;
+  infoText?: string;
+  onInfoPress?: (label: string, infoText: string) => void;
 }
 
 export default function CategoryProgressBar({
@@ -26,6 +28,8 @@ export default function CategoryProgressBar({
   onAdjust,
   canIncrease,
   canDecrease,
+  infoText,
+  onInfoPress,
 }: CategoryProgressBarProps) {
   const displayValue = value + (pending || 0);
   const ratio = maxValue > 0 ? value / maxValue : 0;
@@ -37,6 +41,14 @@ export default function CategoryProgressBar({
         <View style={styles.leftSection}>
           <IconComponent size={22} color={color} />
           <Text style={styles.label}>{label}</Text>
+          {infoText && onInfoPress && (
+            <TouchableOpacity
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={() => onInfoPress(label, infoText)}
+            >
+              <Info size={16} color="#95A5A6" />
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.rightSection}>
           {interactive && onAdjust && (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Minus, Plus } from 'lucide-react-native';
+import { Minus, Plus, Info } from 'lucide-react-native';
 
 export interface SkillItem {
   id: string;
@@ -9,6 +9,7 @@ export interface SkillItem {
   label: string;
   value: number;
   pending?: number;
+  infoText?: string;
 }
 
 interface TechnicalSkillChartProps {
@@ -18,6 +19,7 @@ interface TechnicalSkillChartProps {
   onAdjust?: (id: string, delta: number) => void;
   canIncrease?: (id: string) => boolean;
   canDecrease?: (id: string) => boolean;
+  onInfoPress?: (label: string, infoText: string) => void;
 }
 
 export default function TechnicalSkillChart({
@@ -27,6 +29,7 @@ export default function TechnicalSkillChart({
   onAdjust,
   canIncrease,
   canDecrease,
+  onInfoPress,
 }: TechnicalSkillChartProps) {
   const maxValue = Math.max(...items.map((item) => item.value), 1);
   const chartHeight = 140;
@@ -55,7 +58,17 @@ export default function TechnicalSkillChart({
                 <View style={[styles.barFill, { height: barHeight, backgroundColor: item.color }]} />
               </View>
               <Text style={[styles.percentText, { color: item.color }]}>{percentage}%</Text>
-              <Text style={styles.labelText}>{item.label}</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.labelText}>{item.label}</Text>
+                {item.infoText && onInfoPress && (
+                  <TouchableOpacity
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    onPress={() => onInfoPress(item.label, item.infoText!)}
+                  >
+                    <Info size={12} color="#95A5A6" />
+                  </TouchableOpacity>
+                )}
+              </View>
               {interactive && onAdjust && (
                 <View style={styles.controlsRow}>
                   <TouchableOpacity
@@ -91,6 +104,14 @@ export default function TechnicalSkillChart({
               <View style={styles.listLeft}>
                 <IconComponent size={18} color={item.color} />
                 <Text style={styles.listLabel}>{item.label}</Text>
+                {item.infoText && onInfoPress && (
+                  <TouchableOpacity
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    onPress={() => onInfoPress(item.label, item.infoText!)}
+                  >
+                    <Info size={14} color="#95A5A6" />
+                  </TouchableOpacity>
+                )}
               </View>
               <View style={styles.listRight}>
                 <Text style={[styles.listValue, { color: item.color }]}>
@@ -173,6 +194,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#7F8C8D',
     textAlign: 'center',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   controlsRow: {
     flexDirection: 'row',

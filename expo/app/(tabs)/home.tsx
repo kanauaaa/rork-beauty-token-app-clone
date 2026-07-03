@@ -692,7 +692,7 @@ function HomeContent() {
                       <CategoryProgressBar
                         icon={Heart}
                         color="#FF69B4"
-                        label="接客・サービス"
+                        label="接客・カウンセリング"
                         value={btDistribution.service}
                         pending={pendingBTDistribution.service}
                         maxValue={grandTotal}

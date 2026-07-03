@@ -39,7 +39,7 @@ export default function AssistantBTScreen() {
     { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
     { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
     { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
-    { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
+    { id: 'service', name: '接客・カウンセリング', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
   ]);
@@ -358,7 +358,7 @@ export default function AssistantBTScreen() {
               <Text style={styles.instructionText}>
                 • 顧客がアシスタントに評価したBPを付与できます{'\n'}
                 • アシスタント美容師のQRコードをスキャンします{'\n'}
-                • BPを各評価項目（カット、カラー、パーマ、縮毛矯正、エクステ、マッサージ、接客・サービス、時間管理）に振り分けて付与します{'\n'}
+                • BPを各評価項目（カット、カラー、パーマ、縮毛矯正、エクステ、マッサージ、接客・カウンセリング、時間管理）に振り分けて付与します{'\n'}
                 • アシスタントが複数いる場合、順番に各アシスタントへ付与します{'\n'}
                 • BP破棄を選択すると、そのBPは誰にも付与されず破棄されます{'\n'}
                 • 全てのBPを付与すると、タスクは自動的に削除されます

@@ -10,7 +10,7 @@ import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider'
 import { useDisputes } from '@/providers/DisputeProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
+import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown, Info } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
@@ -72,6 +72,23 @@ function RatingContent() {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [technicalExpanded, setTechnicalExpanded] = useState(false);
+  const [infoModal, setInfoModal] = useState<{ title: string; description: string } | null>(null);
+
+  const categoryDescriptions: Record<string, string> = {
+    cut: 'カットの技術・仕上がりを評価してください。',
+    color: 'カラーの発色・ムラ・仕上がりを評価してください。',
+    perm: 'パーマの巻き具ご・持ちは・仕上がりを評価してください。',
+    straightening: '縮毛矯正のストレート感・ダメージ・仕上がりを評価してください。',
+    extensions: 'エクステのつけ心地・自然さ・仕上がりを評価してください。',
+    massage: 'マッサージの手技・気持ちよさ・癒やしを評価してください。',
+    service: '接客態度、カウンセリング、提案力、説明の分かりやすさを評価してください。',
+    timeManagement: '施術時間、待ち時間、施術の進行の評価を行なってください。',
+    assistant: 'アシスタントによる施術や接客があれば満足度に応じて評価を行なってください。',
+  };
+
+  const handleInfoPress = (label: string, infoText: string) => {
+    setInfoModal({ title: label, description: infoText });
+  };
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
     { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
@@ -80,7 +97,7 @@ function RatingContent() {
     { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
     { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
     { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
-    { id: 'service', name: '接客・サービス', amount: 0, icon: Heart, color: '#FF69B4' },
+    { id: 'service', name: '接客・カウンセリング', amount: 0, icon: Heart, color: '#FF69B4' },
     { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
     { id: 'assistant', name: 'アシスタント', amount: 0, icon: Users, color: '#87CEEB' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
@@ -1346,6 +1363,7 @@ Alert.alert(
                       color: a.color,
                       label: a.name,
                       value: a.amount,
+                      infoText: categoryDescriptions[a.id],
                     }));
                     return (
                       <>
@@ -1377,6 +1395,7 @@ Alert.alert(
                               onAdjust={(id, delta) => updateBTAllocation(id, delta)}
                               canIncrease={() => remainingBT > 0}
                               canDecrease={(id) => techAllocations.find(a => a.id === id)?.amount !== 0}
+                              onInfoPress={handleInfoPress}
                             />
                           </View>
                         )}
@@ -1425,6 +1444,8 @@ Alert.alert(
                               onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
                               canIncrease={remainingBT > 0}
                               canDecrease={allocation.amount > 0}
+                              infoText={categoryDescriptions[allocation.id]}
+                              onInfoPress={handleInfoPress}
                             />
                           );
                         })}
@@ -1740,6 +1761,31 @@ Alert.alert(
               <View style={{ height: 100 }} />
             </ScrollView>
           )}
+        </View>
+      </Modal>
+
+      <Modal
+        visible={infoModal !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.infoModalContent}>
+            <View style={styles.infoModalHeader}>
+              <Info size={24} color="#FF69B4" />
+              <Text style={styles.infoModalTitle}>{infoModal?.title}</Text>
+            </View>
+            <Text style={styles.infoModalDescription}>
+              {infoModal?.description}
+            </Text>
+            <TouchableOpacity
+              style={styles.infoModalButton}
+              onPress={() => setInfoModal(null)}
+            >
+              <Text style={styles.infoModalButtonText}>閉じる</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -2565,6 +2611,47 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center' as const,
     lineHeight: 24,
+  },
+  infoModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    width: '84%',
+    maxWidth: 420,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  infoModalHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 10,
+    marginBottom: 16,
+  },
+  infoModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold' as const,
+    color: '#2C3E50',
+    flexShrink: 1,
+  },
+  infoModalDescription: {
+    fontSize: 15,
+    color: '#34495E',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  infoModalButton: {
+    backgroundColor: '#FF69B4',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center' as const,
+  },
+  infoModalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold' as const,
   },
   modalButton: {
     backgroundColor: '#FF69B4',
