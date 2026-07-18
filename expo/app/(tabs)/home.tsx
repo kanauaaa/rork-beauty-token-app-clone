@@ -13,7 +13,6 @@ import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 
-import AdBanner from '@/components/AdBanner';
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
 import { useReferral } from '@/providers/ReferralProvider';
 import { useFavorites } from '@/providers/FavoriteProvider';
@@ -920,9 +919,6 @@ function HomeContent() {
           </View>
         )}
 
-        <View style={styles.adSection}>
-          <AdBanner />
-        </View>
       </ScrollView>
 
       <Modal
@@ -1421,9 +1417,6 @@ function HomeContent() {
               </Text>
             </View>
 
-            <View style={styles.customerRecordAdSection}>
-              <AdBanner />
-            </View>
           </ScrollView>
 
           <View style={styles.customerRecordActions}>
@@ -2078,10 +2071,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: 'white',
-  },
-  adSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 100,
   },
   activityList: {
     gap: 12,
@@ -2890,9 +2879,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
-  },
-  customerRecordAdSection: {
-    marginBottom: 20,
   },
   btBreakdownSection: {
     paddingHorizontal: 24,

@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFavorites, ScoutRequest as ScoutRequestType } from '@/providers/FavoriteProvider';
 import { Users, MapPin, Calendar, Clock, FileText, Plus, X, CheckCircle, AlertCircle, Star, Navigation, ChevronDown, Map, Send } from 'lucide-react-native';
 import * as Location from 'expo-location';
-import AdBanner from '@/components/AdBanner';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 
 
@@ -1307,10 +1306,6 @@ function MatchingContent() {
                 </Text>
               </View>
             )}
-
-              <View style={styles.adContainer}>
-                <AdBanner />
-              </View>
             </ScrollView>
           ) : selectedTab === 'history' ? (
           <FlatList
@@ -1486,11 +1481,6 @@ function MatchingContent() {
                 </Text>
               </View>
             }
-            ListFooterComponent={
-              <View style={styles.adContainer}>
-                <AdBanner />
-              </View>
-            }
           />
         ) : (
           <FlatList
@@ -1567,11 +1557,6 @@ function MatchingContent() {
                 <Text style={styles.emptyStateText}>
                   右上の＋ボタンから新しいマッチング申請を作成しましょう
                 </Text>
-              </View>
-            }
-            ListFooterComponent={
-              <View style={styles.adContainer}>
-                <AdBanner />
               </View>
             }
           />
@@ -1804,11 +1789,6 @@ function MatchingContent() {
               </Text>
             </View>
           }
-          ListFooterComponent={
-            <View style={styles.adContainer}>
-              <AdBanner />
-            </View>
-          }
           />
         ) : hairdresserSelectedTab === 'scouted' ? (
           <FlatList
@@ -1945,11 +1925,6 @@ function MatchingContent() {
                 <Text style={styles.emptyStateText}>
                   顧客をスカウトすると、ここに表示されます
                 </Text>
-              </View>
-            }
-            ListFooterComponent={
-              <View style={styles.adContainer}>
-                <AdBanner />
               </View>
             }
           />
@@ -2117,11 +2092,6 @@ function MatchingContent() {
                 <Text style={styles.emptyStateText}>
                   スカウトが承認または却下されると、ここに表示されます
                 </Text>
-              </View>
-            }
-            ListFooterComponent={
-              <View style={styles.adContainer}>
-                <AdBanner />
               </View>
             }
           />
@@ -3543,9 +3513,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#2ECC71',
-  },
-  adContainer: {
-    marginTop: 16,
   },
   favoritedCustomersSection: {
     paddingHorizontal: 24,

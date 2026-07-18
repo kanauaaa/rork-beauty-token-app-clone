@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth, User } from '@/providers/AuthProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search as SearchIcon, MapPin, Star, Navigation, Award, Map as MapIcon, Calendar, Clock, FileText, CheckCircle, X, Bell } from 'lucide-react-native';
-import AdBanner from '@/components/AdBanner';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import { WebView as ExpoWebView } from 'react-native-webview';
 import { useFavorites } from '@/providers/FavoriteProvider';
@@ -599,9 +598,6 @@ export default function SearchScreen() {
                 {renderHairdresserCard({ item, index })}
               </View>
             ))}
-            <View style={styles.adSection}>
-              <AdBanner />
-            </View>
           </View>
         )}
       </ScrollView>
@@ -1096,10 +1092,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 
-  adSection: {
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
   highlightedCard: {
     borderWidth: 2,
     borderColor: '#FFD700',
