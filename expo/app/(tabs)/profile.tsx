@@ -26,7 +26,7 @@ export default function ProfileScreen() {
   const { subscription, checkSubscriptionStatus } = useSubscription();
   const { createRatingTask } = useRatingTasks();
   const { getBTDistribution, getRatingsByCustomer } = useRatings();
-  const { triggerPreview } = useBPEarned();
+  const { triggerPreview, triggerNormalPreview } = useBPEarned();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
@@ -753,6 +753,21 @@ export default function ProfileScreen() {
                     </View>
                   );
                 })}
+                <View style={styles.achievementTestRow}>
+                  <View style={styles.achievementTestInfo}>
+                    <Sparkles size={16} color="#4FC3F7" />
+                    <Text style={styles.achievementTestText}>通常BP獲得演出のテスト</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.achievementTestButton}
+                    onPress={() => triggerNormalPreview(5)}
+                    activeOpacity={0.7}
+                    accessibilityLabel="通常BP獲得演出のテストを再生"
+                  >
+                    <Play size={14} color="#4FC3F7" fill="#4FC3F7" />
+                    <Text style={styles.achievementTestButtonText}>再生</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           );
@@ -2083,6 +2098,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600' as const,
     color: '#B8860B',
+  },
+  achievementTestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingTop: 12,
+    paddingBottom: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    gap: 12,
+  },
+  achievementTestInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  achievementTestText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#3498DB',
+  },
+  achievementTestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(79, 195, 247, 0.14)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    minHeight: 36,
+  },
+  achievementTestButtonText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: '#2980B9',
   },
   testQRItem: {
     marginTop: 4,

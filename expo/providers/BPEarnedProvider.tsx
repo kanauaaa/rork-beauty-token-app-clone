@@ -94,6 +94,8 @@ interface BPEarnedContextValue {
   triggerEarned: (amount: number, totalBP: number) => void;
   /** Force-play a milestone celebration for preview (no normal popup). */
   triggerPreview: (milestone: number) => void;
+  /** Force-play a normal BP-earned popup for preview. */
+  triggerNormalPreview: (amount?: number) => void;
 }
 
 const BPEarnedContext = createContext<BPEarnedContextValue | null>(null);
@@ -696,9 +698,26 @@ export function BPEarnedProvider({ children }: { children: React.ReactNode }) {
     [processNext],
   );
 
+  const triggerNormalPreview = useCallback(
+    (amount = 5) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      queueRef.current.push({
+        _id: ++_eventId,
+        amount,
+        type: 'normal',
+      });
+
+      if (!processingRef.current) {
+        processingRef.current = true;
+        processNext();
+      }
+    },
+    [processNext],
+  );
+
   const ctxValue = useMemo(
-    () => ({ triggerEarned, triggerPreview }),
-    [triggerEarned, triggerPreview],
+    () => ({ triggerEarned, triggerPreview, triggerNormalPreview }),
+    [triggerEarned, triggerPreview, triggerNormalPreview],
   );
 
   return (
