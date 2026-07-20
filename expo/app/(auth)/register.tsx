@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, Gender } from '@/providers/AuthProvider';
 import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan, Phone } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -86,6 +86,7 @@ export default function RegisterScreen() {
     password: '',
     phoneNumber: '',
     role: 'customer' as 'hairdresser' | 'customer',
+    gender: 'unspecified' as Gender,
     workplace: '',
     workplaceName: '',
     profileImageUri: '',
@@ -126,6 +127,11 @@ export default function RegisterScreen() {
 
     if (formData.role === 'hairdresser' && (!formData.workplace?.trim() || !formData.workplaceName?.trim() || formData.latitude === undefined || formData.longitude === undefined)) {
       Alert.alert('エラー', '美容師の場合は勤務地名、住所、位置情報を設定してください');
+      return;
+    }
+
+    if (formData.gender === 'unspecified') {
+      Alert.alert('エラー', '性別を選択してください');
       return;
     }
 
@@ -303,6 +309,7 @@ export default function RegisterScreen() {
       password: 'test123456',
       phoneNumber: '09012345678',
       role: 'hairdresser' as 'hairdresser' | 'customer',
+      gender: 'unspecified' as Gender,
       workplace: '東京都渋谷区',
       workplaceName: '美容室A',
       profileImageUri: '',
@@ -325,6 +332,7 @@ export default function RegisterScreen() {
       password: 'test123456',
       phoneNumber: '08098765432',
       role: 'customer' as 'hairdresser' | 'customer',
+      gender: 'female' as Gender,
       workplace: '',
       workplaceName: '',
       profileImageUri: '',
@@ -472,6 +480,26 @@ export default function RegisterScreen() {
                 <Text style={styles.referralInfoSubtext}>
                   登録完了後、紹介したユーザーに特典が付与されます。
                 </Text>
+              </View>
+            )}
+
+            {formData.role === 'customer' && (
+              <View style={styles.genderSection}>
+                <Text style={styles.genderLabel}>性別 *</Text>
+                <View style={styles.genderSelector}>
+                  <TouchableOpacity
+                    style={[styles.genderButton, formData.gender === 'male' && styles.genderButtonActive]}
+                    onPress={() => updateFormData('gender', 'male')}
+                  >
+                    <Text style={[styles.genderButtonText, formData.gender === 'male' && styles.genderButtonTextActive]}>男性</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.genderButton, formData.gender === 'female' && styles.genderButtonActive]}
+                    onPress={() => updateFormData('gender', 'female')}
+                  >
+                    <Text style={[styles.genderButtonText, formData.gender === 'female' && styles.genderButtonTextActive]}>女性</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -832,6 +860,38 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
   },
   roleButtonTextActive: {
+    color: 'white',
+  },
+  genderSection: {
+    marginBottom: 20,
+  },
+  genderLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#2C3E50',
+    marginBottom: 8,
+  },
+  genderSelector: {
+    flexDirection: 'row' as const,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  genderButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center' as const,
+    borderRadius: 8,
+  },
+  genderButtonActive: {
+    backgroundColor: '#FF69B4',
+  },
+  genderButtonText: {
+    fontSize: 16,
+    fontWeight: '500' as const,
+    color: '#7F8C8D',
+  },
+  genderButtonTextActive: {
     color: 'white',
   },
   form: {

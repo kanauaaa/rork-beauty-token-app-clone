@@ -854,7 +854,7 @@ function RequestsContent() {
       <View style={styles.menuFormSection}>
         <Text style={styles.formLabel}>塗布方法</Text>
         <View style={styles.buttonGroup}>
-          {['リタッチ', 'ワンタッチ', '塗り分け'].map((type) => (
+          {['リタッチ', 'ワンタッチ', '塗り分け', 'Wカラー'].map((type) => (
             <TouchableOpacity
               key={type}
               style={[
@@ -971,7 +971,7 @@ function RequestsContent() {
           </View>
         )}
         
-        {menuDetails.color?.applicationType !== '塗り分け' && (
+        {menuDetails.color?.applicationType !== '塗り分け' && menuDetails.color?.applicationType !== 'Wカラー' && (
           <>
             <View style={styles.copyButtonWrapper}>
               <TouchableOpacity
@@ -1053,6 +1053,74 @@ function RequestsContent() {
           </>
         )}
         
+        {menuDetails.color?.applicationType === 'Wカラー' && (
+          <>
+            <Text style={styles.infoNote}>📝 1回目のカラー詳細</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="1回目：カラー剤メーカー（例：フィオーレラディーチェ）"
+              value={menuDetails.color?.firstRoundBrand || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'firstRoundBrand', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <TextInput
+              style={styles.formInput}
+              placeholder="1回目：選定（色番号など）（例：８NB）"
+              value={menuDetails.color?.firstRoundSelection || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'firstRoundSelection', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <View style={styles.secondLiquidRow}>
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="1回目：2液濃度"
+                value={menuDetails.color?.firstRoundSecondLiquidConcentration || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'firstRoundSecondLiquidConcentration', text)}
+                placeholderTextColor="#95A5A6"
+              />
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="1回目：希釈倍率"
+                value={menuDetails.color?.firstRoundSecondLiquidRatio || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'firstRoundSecondLiquidRatio', text)}
+                placeholderTextColor="#95A5A6"
+              />
+            </View>
+
+            <Text style={styles.infoNote}>📝 2回目のカラー詳細</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="2回目：カラー剤メーカー"
+              value={menuDetails.color?.secondRoundBrand || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'secondRoundBrand', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <TextInput
+              style={styles.formInput}
+              placeholder="2回目：選定（色番号など）"
+              value={menuDetails.color?.secondRoundSelection || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'secondRoundSelection', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <View style={styles.secondLiquidRow}>
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="2回目：2液濃度"
+                value={menuDetails.color?.secondRoundSecondLiquidConcentration || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'secondRoundSecondLiquidConcentration', text)}
+                placeholderTextColor="#95A5A6"
+              />
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="2回目：希釈倍率"
+                value={menuDetails.color?.secondRoundSecondLiquidRatio || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'secondRoundSecondLiquidRatio', text)}
+                placeholderTextColor="#95A5A6"
+              />
+            </View>
+          </>
+        )}
+
         <TextInput
           style={styles.formInput}
           placeholder="放置時間（例: 30分）"

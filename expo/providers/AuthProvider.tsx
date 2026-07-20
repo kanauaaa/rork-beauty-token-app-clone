@@ -27,12 +27,15 @@ import {
 } from 'firebase/firestore';
 
 
+export type Gender = 'male' | 'female' | 'unspecified';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   phoneNumber: string;
   role: 'hairdresser' | 'customer' | 'admin';
+  gender?: Gender;
   workplace?: string;
   workplaceName?: string;
   hairdresserId?: string;
@@ -58,7 +61,7 @@ interface AuthState {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithCustomToken: (customToken: string) => Promise<void>;
-  register: (userData: Partial<User> & { email: string; password: string; phoneNumber: string }) => Promise<void>;
+  register: (userData: Partial<User> & { email: string; password: string; phoneNumber: string; gender?: Gender }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   verifyCustomer: (customerId: string) => Promise<void>;
@@ -92,6 +95,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
               email: firebaseUser.email || '',
               phoneNumber: userData.phoneNumber || '',
               role: userData.role || 'customer',
+              gender: userData.gender as Gender | undefined,
               workplace: userData.workplace,
               workplaceName: userData.workplaceName,
               hairdresserId: userData.hairdresserId,
@@ -184,7 +188,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     }
   };
 
-  const register = async (userData: Partial<User> & { email: string; password: string; phoneNumber: string }) => {
+  const register = async (userData: Partial<User> & { email: string; password: string; phoneNumber: string; gender?: Gender }) => {
     setIsLoading(true);
     try {
       if (!userData.name || !userData.email || !userData.password || !userData.phoneNumber) {
@@ -212,6 +216,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         email: userData.email,
         phoneNumber: userData.phoneNumber,
         role: userData.role || 'customer',
+        gender: userData.gender || 'unspecified',
         profileImageUri: userData.profileImageUri || null,
         status: 'approved',
         referredBy: userData.referredBy || null,

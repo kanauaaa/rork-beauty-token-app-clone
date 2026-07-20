@@ -33,6 +33,15 @@ export interface CutDetails {
 export interface ColorDetails {
   applicationType: string;
   retouchCm?: string;
+  isWColor?: boolean;
+  firstRoundBrand?: string;
+  firstRoundSelection?: string;
+  firstRoundSecondLiquidConcentration?: string;
+  firstRoundSecondLiquidRatio?: string;
+  secondRoundBrand?: string;
+  secondRoundSelection?: string;
+  secondRoundSecondLiquidConcentration?: string;
+  secondRoundSecondLiquidRatio?: string;
   areas?: string[];
   areaWidths?: { [key: string]: string };
   areaBrands?: { [key: string]: string };
