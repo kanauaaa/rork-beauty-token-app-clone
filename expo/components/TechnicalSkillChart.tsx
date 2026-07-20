@@ -2,6 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Minus, Plus, Info } from 'lucide-react-native';
 
+export interface SkillBreakdownItem {
+  label: string;
+  percent: number;
+}
+
 export interface SkillItem {
   id: string;
   icon: React.ComponentType<{ size: number; color: string }>;
@@ -10,6 +15,7 @@ export interface SkillItem {
   value: number;
   pending?: number;
   infoText?: string;
+  breakdown?: SkillBreakdownItem[];
 }
 
 interface TechnicalSkillChartProps {
@@ -55,7 +61,14 @@ export default function TechnicalSkillChart({
               </View>
               <Text style={styles.unitText}>BP</Text>
               <View style={[styles.barTrack, { height: chartHeight }]}>
-                <View style={[styles.barFill, { height: barHeight, backgroundColor: item.color }]} />
+                {item.breakdown && item.breakdown.length === 2 && (item.breakdown[0].percent + item.breakdown[1].percent) > 0 ? (
+                  <View style={[styles.barFill, styles.barFillSplit, { height: barHeight }]}>
+                    <View style={{ flex: item.breakdown[1].percent, width: '100%', backgroundColor: `${item.color}59` }} />
+                    <View style={{ flex: item.breakdown[0].percent, width: '100%', backgroundColor: item.color }} />
+                  </View>
+                ) : (
+                  <View style={[styles.barFill, { height: barHeight, backgroundColor: item.color }]} />
+                )}
               </View>
               <Text style={[styles.percentText, { color: item.color }]}>{percentage}%</Text>
               <View style={styles.labelRow}>
@@ -103,15 +116,28 @@ export default function TechnicalSkillChart({
             <View key={`list-${item.id}`} style={styles.listRow}>
               <View style={styles.listLeft}>
                 <IconComponent size={18} color={item.color} />
-                <Text style={styles.listLabel}>{item.label}</Text>
-                {item.infoText && onInfoPress && (
-                  <TouchableOpacity
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    onPress={() => onInfoPress(item.label, item.infoText!)}
-                  >
-                    <Info size={14} color="#95A5A6" />
-                  </TouchableOpacity>
-                )}
+                <View style={styles.listLabelColumn}>
+                  <View style={styles.listLabelRow}>
+                    <Text style={styles.listLabel}>{item.label}</Text>
+                    {item.infoText && onInfoPress && (
+                      <TouchableOpacity
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                        onPress={() => onInfoPress(item.label, item.infoText!)}
+                      >
+                        <Info size={14} color="#95A5A6" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  {item.breakdown && item.breakdown.length === 2 && (item.breakdown[0].percent + item.breakdown[1].percent) > 0 && (
+                    <View style={styles.breakdownRow}>
+                      <View style={[styles.breakdownDot, { backgroundColor: item.color }]} />
+                      <Text style={styles.breakdownText}>{item.breakdown[0].label} {item.breakdown[0].percent}%</Text>
+                      <Text style={styles.breakdownSeparator}>｜</Text>
+                      <View style={[styles.breakdownDot, { backgroundColor: `${item.color}59` }]} />
+                      <Text style={styles.breakdownText}>{item.breakdown[1].label} {item.breakdown[1].percent}%</Text>
+                    </View>
+                  )}
+                </View>
               </View>
               <View style={styles.listRight}>
                 <Text style={[styles.listValue, { color: item.color }]}>
@@ -184,6 +210,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
     minHeight: 4,
   },
+  barFillSplit: {
+    overflow: 'hidden',
+    flexDirection: 'column',
+  },
   percentText: {
     fontSize: 11,
     fontWeight: 'bold',
@@ -234,11 +264,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flexShrink: 1,
+  },
+  listLabelColumn: {
+    flexShrink: 1,
+    gap: 2,
+  },
+  listLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   listLabel: {
     fontSize: 14,
     color: '#2C3E50',
     fontWeight: '500',
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  breakdownDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  breakdownText: {
+    fontSize: 10,
+    color: '#7F8C8D',
+    fontWeight: '500' as const,
+  },
+  breakdownSeparator: {
+    fontSize: 9,
+    color: '#BDC3C7',
   },
   listRight: {
     flexDirection: 'row',

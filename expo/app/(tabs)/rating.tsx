@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRatings, Assistant } from '@/providers/RatingProvider';
+import { useRatings, Assistant, ServiceDetails } from '@/providers/RatingProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
@@ -73,6 +73,7 @@ function RatingContent() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [technicalExpanded, setTechnicalExpanded] = useState(false);
   const [infoModal, setInfoModal] = useState<{ title: string; description: string } | null>(null);
+  const [serviceDetails, setServiceDetails] = useState<ServiceDetails>({});
 
   const categoryDescriptions: Record<string, string> = {
     cut: 'カットの技術・仕上がりを評価してください。',
@@ -422,6 +423,14 @@ function RatingContent() {
 
       const validAssistants = assistants.filter(a => a.name.trim() !== '' || a.selected);
 
+      const submittedDetails: ServiceDetails = {};
+      const cutAlloc = btAllocations.find(c => c.id === 'cut');
+      const colorAlloc = btAllocations.find(c => c.id === 'color');
+      const permAlloc = btAllocations.find(c => c.id === 'perm');
+      if (cutAlloc && cutAlloc.amount > 0 && serviceDetails.cut) submittedDetails.cut = serviceDetails.cut;
+      if (colorAlloc && colorAlloc.amount > 0 && serviceDetails.color) submittedDetails.color = serviceDetails.color;
+      if (permAlloc && permAlloc.amount > 0 && serviceDetails.perm) submittedDetails.perm = serviceDetails.perm;
+
       const ratingData = {
         customerId: user.id,
         customerName: user.name,
@@ -434,6 +443,7 @@ function RatingContent() {
         btDiscarded: discarded?.amount || 0,
         comment: comment.trim(),
         photoUrl: photoUrl || undefined,
+        serviceDetails: submittedDetails,
       };
 
 
@@ -471,6 +481,7 @@ function RatingContent() {
       setSelectedTaskId(null);
       setSavePhotoToRecord(false);
       setSelectedPhoto(null);
+      setServiceDetails({});
       resetAllocations();
     } catch (error: any) {
       console.error('[Rating] submitRating error:', error);
@@ -1397,6 +1408,65 @@ Alert.alert(
                               canDecrease={(id) => techAllocations.find(a => a.id === id)?.amount !== 0}
                               onInfoPress={handleInfoPress}
                             />
+                            {(() => {
+                              const cutAmount = techAllocations.find(a => a.id === 'cut')?.amount ?? 0;
+                              const colorAmount = techAllocations.find(a => a.id === 'color')?.amount ?? 0;
+                              const permAmount = techAllocations.find(a => a.id === 'perm')?.amount ?? 0;
+                              if (cutAmount <= 0 && colorAmount <= 0 && permAmount <= 0) return null;
+                              return (
+                                <View style={styles.serviceDetailSection}>
+                                  <Text style={styles.serviceDetailTitle}>施術内容の詳細</Text>
+                                  {cutAmount > 0 && (
+                                    <View style={styles.serviceDetailRow}>
+                                      <Text style={styles.serviceDetailLabel}>カット</Text>
+                                      <View style={styles.serviceDetailChips}>
+                                        {([['mens', 'メンズ'], ['ladies', 'レディース']] as const).map(([val, lbl]) => (
+                                          <TouchableOpacity
+                                            key={`cut-${val}`}
+                                            style={[styles.serviceDetailChip, serviceDetails.cut === val && { backgroundColor: '#FF69B4', borderColor: '#FF69B4' }]}
+                                            onPress={() => setServiceDetails(prev => ({ ...prev, cut: val }))}
+                                          >
+                                            <Text style={[styles.serviceDetailChipText, serviceDetails.cut === val && styles.serviceDetailChipTextSelected]}>{lbl}</Text>
+                                          </TouchableOpacity>
+                                        ))}
+                                      </View>
+                                    </View>
+                                  )}
+                                  {colorAmount > 0 && (
+                                    <View style={styles.serviceDetailRow}>
+                                      <Text style={styles.serviceDetailLabel}>カラー</Text>
+                                      <View style={styles.serviceDetailChips}>
+                                        {([['oneColor', 'ワンカラー'], ['wColor', 'Wカラー']] as const).map(([val, lbl]) => (
+                                          <TouchableOpacity
+                                            key={`color-${val}`}
+                                            style={[styles.serviceDetailChip, serviceDetails.color === val && { backgroundColor: '#FF8C42', borderColor: '#FF8C42' }]}
+                                            onPress={() => setServiceDetails(prev => ({ ...prev, color: val }))}
+                                          >
+                                            <Text style={[styles.serviceDetailChipText, serviceDetails.color === val && styles.serviceDetailChipTextSelected]}>{lbl}</Text>
+                                          </TouchableOpacity>
+                                        ))}
+                                      </View>
+                                    </View>
+                                  )}
+                                  {permAmount > 0 && (
+                                    <View style={styles.serviceDetailRow}>
+                                      <Text style={styles.serviceDetailLabel}>パーマ</Text>
+                                      <View style={styles.serviceDetailChips}>
+                                        {([['mens', 'メンズ'], ['ladies', 'レディース']] as const).map(([val, lbl]) => (
+                                          <TouchableOpacity
+                                            key={`perm-${val}`}
+                                            style={[styles.serviceDetailChip, serviceDetails.perm === val && { backgroundColor: '#9B59B6', borderColor: '#9B59B6' }]}
+                                            onPress={() => setServiceDetails(prev => ({ ...prev, perm: val }))}
+                                          >
+                                            <Text style={[styles.serviceDetailChipText, serviceDetails.perm === val && styles.serviceDetailChipTextSelected]}>{lbl}</Text>
+                                          </TouchableOpacity>
+                                        ))}
+                                      </View>
+                                    </View>
+                                  )}
+                                </View>
+                              );
+                            })()}
                           </View>
                         )}
 
@@ -2611,6 +2681,49 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center' as const,
     lineHeight: 24,
+  },
+  serviceDetailSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    gap: 8,
+  },
+  serviceDetailTitle: {
+    fontSize: 12,
+    fontWeight: 'bold' as const,
+    color: '#7F8C8D',
+    marginBottom: 2,
+  },
+  serviceDetailRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
+  serviceDetailLabel: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#2C3E50',
+  },
+  serviceDetailChips: {
+    flexDirection: 'row' as const,
+    gap: 6,
+  },
+  serviceDetailChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#F8F9FA',
+  },
+  serviceDetailChipText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+  },
+  serviceDetailChipTextSelected: {
+    color: '#FFFFFF',
   },
   infoModalContent: {
     backgroundColor: 'white',

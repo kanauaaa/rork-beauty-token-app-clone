@@ -32,6 +32,22 @@ export interface Assistant {
   selected: boolean;
 }
 
+export type CutDetail = 'mens' | 'ladies';
+export type ColorDetail = 'oneColor' | 'wColor';
+export type PermDetail = 'mens' | 'ladies';
+
+export interface ServiceDetails {
+  cut?: CutDetail;
+  color?: ColorDetail;
+  perm?: PermDetail;
+}
+
+export interface CategoryBreakdownCounts {
+  cut: { mens: number; ladies: number };
+  color: { oneColor: number; wColor: number };
+  perm: { mens: number; ladies: number };
+}
+
 export interface Rating {
   id: string;
   customerId: string;
@@ -48,6 +64,7 @@ export interface Rating {
   btReflected?: boolean;
   photoUrl?: string;
   isCustomerVerified?: boolean;
+  serviceDetails?: ServiceDetails;
 }
 
 export interface BTDistribution {
@@ -62,6 +79,7 @@ export interface BTDistribution {
   assistant: number;
   discarded: number;
   total: number;
+  breakdown: CategoryBreakdownCounts;
 }
 
 export interface PendingBP {
@@ -152,6 +170,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
           btReflected: data.btReflected ?? false,
           isCustomerVerified: data.isCustomerVerified ?? false,
+          serviceDetails: data.serviceDetails || undefined,
         });
       });
       setRatings(ratingsData);
@@ -226,6 +245,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
 
     const newRatingData = {
       ...ratingData,
+      serviceDetails: ratingData.serviceDetails ?? {},
       createdAt: serverTimestamp(),
       btReflected: false,
       isCustomerVerified,
@@ -487,6 +507,11 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
       assistant: 0,
       discarded: 0,
       total: 0,
+      breakdown: {
+        cut: { mens: 0, ladies: 0 },
+        color: { oneColor: 0, wColor: 0 },
+        perm: { mens: 0, ladies: 0 },
+      },
     };
 
     hairdresserRatings.forEach(rating => {
@@ -522,6 +547,20 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
         }
       });
       distribution.discarded += rating.btDiscarded || 0;
+
+      const details = rating.serviceDetails;
+      if (details) {
+        rating.categories.forEach(category => {
+          if (category.btAmount <= 0) return;
+          if (category.id === 'cut' && details.cut) {
+            distribution.breakdown.cut[details.cut] += 1;
+          } else if (category.id === 'color' && details.color) {
+            distribution.breakdown.color[details.color] += 1;
+          } else if (category.id === 'perm' && details.perm) {
+            distribution.breakdown.perm[details.perm] += 1;
+          }
+        });
+      }
     });
 
     distribution.total = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage + distribution.service + distribution.timeManagement + distribution.assistant;

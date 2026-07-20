@@ -645,10 +645,17 @@ function HomeContent() {
               
               <View style={styles.btBreakdownCard}>
                 {(() => {
+                  const toBreakdown = (a: number, b: number, l1: string, l2: string) => {
+                    const t = a + b;
+                    if (t === 0) return undefined;
+                    const p1 = Math.round((a / t) * 100);
+                    return [{ label: l1, percent: p1 }, { label: l2, percent: 100 - p1 }];
+                  };
+                  const bd = btDistribution.breakdown;
                   const techItems: SkillItem[] = [
-                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut },
-                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color },
-                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm },
+                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut, breakdown: toBreakdown(bd.cut.mens, bd.cut.ladies, 'メンズ', 'レディース') },
+                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color, breakdown: toBreakdown(bd.color.oneColor, bd.color.wColor, 'ワンカラー', 'Wカラー') },
+                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm, breakdown: toBreakdown(bd.perm.mens, bd.perm.ladies, 'メンズ', 'レディース') },
                     { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
                     { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
                     { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },

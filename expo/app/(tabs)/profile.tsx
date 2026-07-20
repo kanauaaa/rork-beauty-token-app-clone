@@ -632,10 +632,17 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>評価項目別獲得BP</Text>
               <View style={styles.btDistributionGrid}>
                 {(() => {
+                  const toBreakdown = (a: number, b: number, l1: string, l2: string) => {
+                    const t = a + b;
+                    if (t === 0) return undefined;
+                    const p1 = Math.round((a / t) * 100);
+                    return [{ label: l1, percent: p1 }, { label: l2, percent: 100 - p1 }];
+                  };
+                  const bd = distribution.breakdown;
                   const techItems: SkillItem[] = [
-                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut },
-                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: distribution.color },
-                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm },
+                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: distribution.cut, breakdown: toBreakdown(bd.cut.mens, bd.cut.ladies, 'メンズ', 'レディース') },
+                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: distribution.color, breakdown: toBreakdown(bd.color.oneColor, bd.color.wColor, 'ワンカラー', 'Wカラー') },
+                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: distribution.perm, breakdown: toBreakdown(bd.perm.mens, bd.perm.ladies, 'メンズ', 'レディース') },
                     { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
                     { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
                     { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: distribution.massage },
