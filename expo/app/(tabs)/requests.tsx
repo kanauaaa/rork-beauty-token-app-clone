@@ -1055,7 +1055,25 @@ function RequestsContent() {
         
         {menuDetails.color?.applicationType === 'Wカラー' && (
           <>
-            <Text style={styles.infoNote}>📝 1回目のカラー詳細</Text>
+            <View style={styles.copyButtonWrapper}>
+              <TouchableOpacity
+                style={styles.copyToPublicButton}
+                onPress={() => {
+                  updateMenuDetail('color', 'publicFirstRoundBrand', menuDetails.color?.firstRoundBrand || '');
+                  updateMenuDetail('color', 'publicFirstRoundSelection', menuDetails.color?.firstRoundSelection || '');
+                  updateMenuDetail('color', 'publicFirstRoundSecondLiquidConcentration', menuDetails.color?.firstRoundSecondLiquidConcentration || '');
+                  updateMenuDetail('color', 'publicFirstRoundSecondLiquidRatio', menuDetails.color?.firstRoundSecondLiquidRatio || '');
+                  updateMenuDetail('color', 'publicSecondRoundBrand', menuDetails.color?.secondRoundBrand || '');
+                  updateMenuDetail('color', 'publicSecondRoundSelection', menuDetails.color?.secondRoundSelection || '');
+                  updateMenuDetail('color', 'publicSecondRoundSecondLiquidConcentration', menuDetails.color?.secondRoundSecondLiquidConcentration || '');
+                  updateMenuDetail('color', 'publicSecondRoundSecondLiquidRatio', menuDetails.color?.secondRoundSecondLiquidRatio || '');
+                  Alert.alert('コピー完了', '自分用の情報を公開用にコピーしました');
+                }}
+              >
+                <Text style={styles.copyToPublicButtonText}>📋 自分用の情報を公開用にコピー</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.infoNote}>📝 正確な技術情報（自分用）／1回目のカラー詳細</Text>
             <TextInput
               style={styles.formInput}
               placeholder="1回目：カラー剤メーカー（例：フィオーレラディーチェ）"
@@ -1087,7 +1105,7 @@ function RequestsContent() {
               />
             </View>
 
-            <Text style={styles.infoNote}>📝 2回目のカラー詳細</Text>
+            <Text style={styles.infoNote}>📝 正確な技術情報（自分用）／2回目のカラー詳細</Text>
             <TextInput
               style={styles.formInput}
               placeholder="2回目：カラー剤メーカー"
@@ -1118,6 +1136,70 @@ function RequestsContent() {
                 placeholderTextColor="#95A5A6"
               />
             </View>
+
+            <Text style={styles.publicSectionTitle}>👥 他の美容師に表示する内容（ぼかし表現）／1回目</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="公開用1回目：メーカー（例：ブリーチ剤）"
+              value={menuDetails.color?.publicFirstRoundBrand || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'publicFirstRoundBrand', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <TextInput
+              style={styles.formInput}
+              placeholder="公開用1回目：選定（例：通常ブリーチ）"
+              value={menuDetails.color?.publicFirstRoundSelection || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'publicFirstRoundSelection', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <View style={styles.secondLiquidRow}>
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="公開用1回目：2液濃度"
+                value={menuDetails.color?.publicFirstRoundSecondLiquidConcentration || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'publicFirstRoundSecondLiquidConcentration', text)}
+                placeholderTextColor="#95A5A6"
+              />
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="公開用1回目：希釈倍率"
+                value={menuDetails.color?.publicFirstRoundSecondLiquidRatio || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'publicFirstRoundSecondLiquidRatio', text)}
+                placeholderTextColor="#95A5A6"
+              />
+            </View>
+
+            <Text style={styles.publicSectionTitle}>👥 他の美容師に表示する内容（ぼかし表現）／2回目</Text>
+            <TextInput
+              style={styles.formInput}
+              placeholder="公開用2回目：メーカー（例：カラー剤）"
+              value={menuDetails.color?.publicSecondRoundBrand || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'publicSecondRoundBrand', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <TextInput
+              style={styles.formInput}
+              placeholder="公開用2回目：選定（例：ブラウン8トーン）"
+              value={menuDetails.color?.publicSecondRoundSelection || ''}
+              onChangeText={(text) => updateMenuDetail('color', 'publicSecondRoundSelection', text)}
+              placeholderTextColor="#95A5A6"
+            />
+            <View style={styles.secondLiquidRow}>
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="公開用2回目：2液濃度"
+                value={menuDetails.color?.publicSecondRoundSecondLiquidConcentration || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'publicSecondRoundSecondLiquidConcentration', text)}
+                placeholderTextColor="#95A5A6"
+              />
+              <TextInput
+                style={[styles.formInput, styles.secondLiquidInput]}
+                placeholder="公開用2回目：希釈倍率"
+                value={menuDetails.color?.publicSecondRoundSecondLiquidRatio || ''}
+                onChangeText={(text) => updateMenuDetail('color', 'publicSecondRoundSecondLiquidRatio', text)}
+                placeholderTextColor="#95A5A6"
+              />
+            </View>
           </>
         )}
 
@@ -1128,66 +1210,6 @@ function RequestsContent() {
           onChangeText={(text) => updateMenuDetail('color', 'processingTime', text)}
           placeholderTextColor="#95A5A6"
         />
-        
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>ブリーチ有無</Text>
-          <TouchableOpacity
-            style={[styles.switchButton, menuDetails.color?.hasBleach && styles.switchButtonActive]}
-            onPress={() => updateMenuDetail('color', 'hasBleach', !menuDetails.color?.hasBleach)}
-          >
-            <Text style={[styles.switchButtonText, menuDetails.color?.hasBleach && styles.switchButtonTextActive]}>
-              {menuDetails.color?.hasBleach ? '有' : '無'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        
-        {menuDetails.color?.hasBleach && (
-          <>
-            <View style={styles.copyButtonWrapper}>
-              <TouchableOpacity
-                style={styles.copyToPublicButton}
-                onPress={() => {
-                  updateMenuDetail('color', 'publicBleachBrand', menuDetails.color?.bleachBrand || '');
-                  updateMenuDetail('color', 'publicBleachSelection', menuDetails.color?.bleachSelection || '');
-                  Alert.alert('コピー完了', 'ブリーチの自分用情報を公開用にコピーしました');
-                }}
-              >
-                <Text style={styles.copyToPublicButtonText}>📋 ブリーチ情報を公開用にコピー</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.infoNote}>📝 ブリーチ正確情報（自分用）</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder="ブリーチ剤メーカー（正確な名称）"
-              value={menuDetails.color?.bleachBrand || ''}
-              onChangeText={(text) => updateMenuDetail('color', 'bleachBrand', text)}
-              placeholderTextColor="#95A5A6"
-            />
-            <TextInput
-              style={styles.formInput}
-              placeholder="ブリーチ選定（正確な名称）"
-              value={menuDetails.color?.bleachSelection || ''}
-              onChangeText={(text) => updateMenuDetail('color', 'bleachSelection', text)}
-              placeholderTextColor="#95A5A6"
-            />
-            
-            <Text style={styles.publicSectionTitle}>👥 他の美容師に表示（ぼかし）</Text>
-            <TextInput
-              style={styles.formInput}
-              placeholder="公開用ブリーチメーカー（例：ブリーチ剤）"
-              value={menuDetails.color?.publicBleachBrand || ''}
-              onChangeText={(text) => updateMenuDetail('color', 'publicBleachBrand', text)}
-              placeholderTextColor="#95A5A6"
-            />
-            <TextInput
-              style={styles.formInput}
-              placeholder="公開用ブリーチ選定（例：通常ブリーチ）"
-              value={menuDetails.color?.publicBleachSelection || ''}
-              onChangeText={(text) => updateMenuDetail('color', 'publicBleachSelection', text)}
-              placeholderTextColor="#95A5A6"
-            />
-          </>
-        )}
         
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>処理剤有無</Text>

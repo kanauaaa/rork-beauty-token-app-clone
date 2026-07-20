@@ -42,6 +42,14 @@ export interface ColorDetails {
   secondRoundSelection?: string;
   secondRoundSecondLiquidConcentration?: string;
   secondRoundSecondLiquidRatio?: string;
+  publicFirstRoundBrand?: string;
+  publicFirstRoundSelection?: string;
+  publicFirstRoundSecondLiquidConcentration?: string;
+  publicFirstRoundSecondLiquidRatio?: string;
+  publicSecondRoundBrand?: string;
+  publicSecondRoundSelection?: string;
+  publicSecondRoundSecondLiquidConcentration?: string;
+  publicSecondRoundSecondLiquidRatio?: string;
   areas?: string[];
   areaWidths?: { [key: string]: string };
   areaBrands?: { [key: string]: string };
