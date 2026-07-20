@@ -28,9 +28,9 @@ export const BP_MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
 // Gear click — short mechanical tick per BP increment
 const SOUND_CLICK_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/4f736fbb-4faf-4a52-ae81-f72087dcc8bf.mp3';
-// Kachan — heavier metallic latch for the final BP
+// Gacharin — heavy metallic clunk for the final BP (longer & weightier)
 const SOUND_KACHAN_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/fdf7c6e6-8a21-4c41-999c-838dd4f752a7.mp3';
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/d0e91de5-2ec9-4184-8100-3be92044b486.mp3';
 // Milestone fanfare
 const SOUND_MILESTONE_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/daf07af8-e3bf-46c4-bdf5-db2be233dd05.mp3';
@@ -459,16 +459,16 @@ function BPNormalEffect({
       ]).start();
 
       if (isLast) {
-        // Final BP: kachan + blue ring
+        // Final BP: gacharin (heavy metallic clunk) + blue ring
         void playKachanSound();
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
         Animated.timing(blueRing, {
           toValue: 1,
-          duration: 800,
+          duration: 900,
           useNativeDriver: true,
           easing: Easing.out(Easing.cubic),
         }).start();
-        const t = setTimeout(() => fadeOut(), 550);
+        const t = setTimeout(() => fadeOut(), 750);
         timersRef.current.push(t);
       } else {
         void playClickSound();
