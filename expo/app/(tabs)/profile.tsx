@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
-import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
+import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown, Play, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -16,6 +16,7 @@ import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useWeb3 } from '@/providers/Web3Provider';
+import { useBPEarned, BP_MILESTONES } from '@/providers/BPEarnedProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -25,6 +26,7 @@ export default function ProfileScreen() {
   const { subscription, checkSubscriptionStatus } = useSubscription();
   const { createRatingTask } = useRatingTasks();
   const { getBTDistribution, getRatingsByCustomer } = useRatings();
+  const { triggerPreview } = useBPEarned();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
@@ -201,28 +203,22 @@ export default function ProfileScreen() {
     );
   }
 
-  const handleDirectLogout = async () => {
-    try {
-
-      await logout();
-
-    } catch {
-
-      Alert.alert('エラー', 'ログアウトに失敗しました。もう一度お試しください。');
-    }
-  };
-
   const handleLogout = () => {
-
     Alert.alert(
       'ログアウト',
       'ログアウトしますか？',
       [
         { text: 'キャンセル', style: 'cancel' },
-        { 
-          text: 'ログアウト', 
-          style: 'destructive', 
-          onPress: handleDirectLogout
+        {
+          text: 'ログアウト',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch {
+              Alert.alert('エラー', 'ログアウトに失敗しました。もう一度お試しください。');
+            }
+          },
         },
       ]
     );
@@ -710,6 +706,58 @@ export default function ProfileScreen() {
           );
         })()}
 
+        {user.role === 'hairdresser' && (() => {
+          const totalBP = getBTDistribution(user.id).total;
+          return (
+            <View style={styles.achievementsContainer}>
+              <Text style={styles.sectionTitle}>BP実績</Text>
+              <View style={styles.achievementsCard}>
+                <View style={styles.achievementsProgressHeader}>
+                  <Trophy size={20} color="#D4AF37" />
+                  <Text style={styles.achievementsProgressLabel}>累計獲得BP</Text>
+                  <Text style={styles.achievementsProgressValue}>{totalBP} BP</Text>
+                </View>
+                {BP_MILESTONES.map((milestone, index) => {
+                  const achieved = totalBP >= milestone;
+                  const remaining = Math.max(0, milestone - totalBP);
+                  const isLast = index === BP_MILESTONES.length - 1;
+                  return (
+                    <View
+                      key={milestone}
+                      style={[styles.achievementRow, !isLast && styles.achievementRowBorder]}
+                    >
+                      <View style={[styles.achievementIconWrap, achieved ? styles.achievementIconAchieved : styles.achievementIconLocked]}>
+                        {achieved ? (
+                          <Trophy size={18} color="#D4AF37" />
+                        ) : (
+                          <Lock size={16} color="#95A5A6" />
+                        )}
+                      </View>
+                      <View style={styles.achievementInfo}>
+                        <Text style={[styles.achievementTitle, achieved && styles.achievementTitleAchieved]}>
+                          {milestone} BP
+                        </Text>
+                        <Text style={styles.achievementStatus}>
+                          {achieved ? '達成済み' : `あと ${remaining} BP`}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.achievementPreviewButton}
+                        onPress={() => triggerPreview(milestone)}
+                        activeOpacity={0.7}
+                        accessibilityLabel={`${milestone} BPの演出を見る`}
+                      >
+                        <Play size={14} color="#D4AF37" fill="#D4AF37" />
+                        <Text style={styles.achievementPreviewText}>演出</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })()}
+
         <View style={styles.menuContainer}>
           <Text style={styles.sectionTitle}>設定</Text>
           
@@ -760,15 +808,6 @@ export default function ProfileScreen() {
           >
             <LogOut size={20} color="#E74C3C" />
             <Text style={[styles.menuText, styles.logoutText]}>ログアウト</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.menuItem, styles.directLogoutItem]} 
-            onPress={handleDirectLogout}
-            testID="direct-logout-button"
-          >
-            <LogOut size={20} color="#E74C3C" />
-            <Text style={[styles.menuText, styles.logoutText]}>直接ログアウト（テスト用）</Text>
           </TouchableOpacity>
         </View>
 
@@ -1955,9 +1994,95 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#E74C3C',
   },
-  directLogoutItem: {
-    marginTop: 4,
-    backgroundColor: '#FFF5F5',
+  achievementsContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  achievementsCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  achievementsProgressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  achievementsProgressLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#2C3E50',
+  },
+  achievementsProgressValue: {
+    fontSize: 16,
+    fontWeight: 'bold' as const,
+    color: '#D4AF37',
+  },
+  achievementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 12,
+  },
+  achievementRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  achievementIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  achievementIconAchieved: {
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+  },
+  achievementIconLocked: {
+    backgroundColor: '#F0F0F0',
+  },
+  achievementInfo: {
+    flex: 1,
+  },
+  achievementTitle: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: '#7F8C8D',
+    marginBottom: 2,
+  },
+  achievementTitleAchieved: {
+    color: '#2C3E50',
+  },
+  achievementStatus: {
+    fontSize: 12,
+    color: '#95A5A6',
+  },
+  achievementPreviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    minHeight: 36,
+  },
+  achievementPreviewText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: '#B8860B',
   },
   testQRItem: {
     marginTop: 4,

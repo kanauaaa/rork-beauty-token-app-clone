@@ -13,7 +13,7 @@ import { Award } from 'lucide-react-native';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
-const MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
+export const BP_MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
 
 let _eventId = 0;
 
@@ -28,6 +28,8 @@ interface BPEvent {
 
 interface BPEarnedContextValue {
   triggerEarned: (amount: number, totalBP: number) => void;
+  /** Force-play a milestone celebration for preview (no normal popup). */
+  triggerPreview: (milestone: number) => void;
 }
 
 const BPEarnedContext = createContext<BPEarnedContextValue | null>(null);
@@ -145,7 +147,7 @@ function BPMilestoneEffect({ amount, milestone, onDone }: { amount: number; mile
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 function checkMilestoneCrossed(prev: number, next: number): number | null {
-  for (const m of MILESTONES) {
+  for (const m of BP_MILESTONES) {
     if (prev < m && next >= m) return m;
   }
   return null;
@@ -188,7 +190,25 @@ export function BPEarnedProvider({ children }: { children: React.ReactNode }) {
     }
   }, [processNext]);
 
-  const ctxValue = useMemo(() => ({ triggerEarned }), [triggerEarned]);
+  const triggerPreview = useCallback((milestone: number) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    queueRef.current.push({
+      _id: ++_eventId,
+      amount: 0,
+      type: 'milestone',
+      milestoneValue: milestone,
+    });
+
+    if (!processingRef.current) {
+      processingRef.current = true;
+      processNext();
+    }
+  }, [processNext]);
+
+  const ctxValue = useMemo(
+    () => ({ triggerEarned, triggerPreview }),
+    [triggerEarned, triggerPreview],
+  );
 
   return (
     <BPEarnedContext.Provider value={ctxValue}>
