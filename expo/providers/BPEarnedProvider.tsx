@@ -386,18 +386,16 @@ function BPNormalEffect({
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardScale = useRef(new Animated.Value(0.85)).current;
-  const iconRotate = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
   const blueRing = useRef(new Animated.Value(0)).current;
   const numberScale = useRef(new Animated.Value(1)).current;
 
   const countRef = useRef(startTotal);
   const stepRef = useRef(0);
-  const rotationRef = useRef(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Each step = 0.7s, one gachi per digit (ゆったりテンポ)
-  const stepInterval = 700;
+  // Each step = 0.5s, one gachi per digit
+  const stepInterval = 500;
 
   useEffect(() => {
     // Enter
@@ -435,60 +433,55 @@ function BPNormalEffect({
       countRef.current = nextVal;
       setDisplayTotal(nextVal);
 
-      // Gear rotation: 25° per click
-      rotationRef.current += 25;
-      Animated.parallel([
-        Animated.timing(iconRotate, {
-          toValue: rotationRef.current,
-          duration: stepInterval * 0.85,
+      // Scale pulse per click (no rotation)
+      Animated.sequence([
+        Animated.timing(iconScale, {
+          toValue: 1.18,
+          duration: stepInterval * 0.35,
           useNativeDriver: true,
-          easing: Easing.out(Easing.quad),
         }),
-        Animated.sequence([
-          Animated.timing(iconScale, {
-            toValue: 1.18,
-            duration: stepInterval * 0.35,
-            useNativeDriver: true,
-          }),
-          Animated.spring(iconScale, {
-            toValue: 1,
-            friction: 3,
-            tension: 60,
-            useNativeDriver: true,
-          }),
-        ]),
+        Animated.spring(iconScale, {
+          toValue: 1,
+          friction: 3,
+          tension: 60,
+          useNativeDriver: true,
+        }),
       ]).start();
 
+      // Play gachi on every step including the last
+      void playClickSound();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+
       if (isLast) {
-        // Final BP: gachan (slot lever, 1.5s tail) + blue ring + total BP pop
-        void playKachanSound();
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-        // Pop animation on the total BP number (1 → 1.4 → 1)
-        Animated.sequence([
-          Animated.timing(numberScale, {
-            toValue: 1.4,
-            duration: 180,
-            useNativeDriver: true,
-            easing: Easing.out(Easing.quad),
-          }),
-          Animated.spring(numberScale, {
+        // Final BP: after the last gachi, play gachan (slot lever, 1.5s tail) + blue ring + total BP pop
+        setTimeout(() => {
+          void playKachanSound();
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+          // Pop animation on the total BP number (1 → 1.4 → 1)
+          Animated.sequence([
+            Animated.timing(numberScale, {
+              toValue: 1.4,
+              duration: 180,
+              useNativeDriver: true,
+              easing: Easing.out(Easing.quad),
+            }),
+            Animated.spring(numberScale, {
+              toValue: 1,
+              friction: 3,
+              tension: 80,
+              useNativeDriver: true,
+            }),
+          ]).start();
+          Animated.timing(blueRing, {
             toValue: 1,
-            friction: 3,
-            tension: 80,
+            duration: 1400,
             useNativeDriver: true,
-          }),
-        ]).start();
-        Animated.timing(blueRing, {
-          toValue: 1,
-          duration: 1400,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.cubic),
-        }).start();
-        const t = setTimeout(() => fadeOut(), 1200);
-        timersRef.current.push(t);
+            easing: Easing.out(Easing.cubic),
+          }).start();
+          const t = setTimeout(() => fadeOut(), 1200);
+          timersRef.current.push(t);
+        }, stepInterval);
       } else {
-        void playClickSound();
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         const t = setTimeout(runStep, stepInterval);
         timersRef.current.push(t);
       }
@@ -509,7 +502,6 @@ function BPNormalEffect({
 
   const ringScale = blueRing.interpolate({ inputRange: [0, 1], outputRange: [0.2, 2.8] });
   const ringOpacity = blueRing.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0.45, 0] });
-  const iconSpin = iconRotate.interpolate({ inputRange: [0, 360], outputRange: ['0deg', '360deg'] });
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -535,9 +527,9 @@ function BPNormalEffect({
       <Animated.View
         style={[s.nCard, { opacity: cardOpacity, transform: [{ scale: cardScale }] }]}
       >
-        {/* BP icon — rotates per click like a gear */}
+        {/* BP icon — scale pulse per click */}
         <Animated.View
-          style={[s.nIconWrap, { transform: [{ rotate: iconSpin }, { scale: iconScale }] }]}
+          style={[s.nIconWrap, { transform: [{ scale: iconScale }] }]}
         >
           <Image
             source={require('@/assets/images/bp-logo.png')}
