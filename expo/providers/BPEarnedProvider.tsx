@@ -394,8 +394,8 @@ function BPNormalEffect({
   const stepRef = useRef(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Each step = 0.5s, one gachi per digit
-  const stepInterval = 500;
+  // Each step = 0.4s, one gachi per digit
+  const stepInterval = 400;
 
   useEffect(() => {
     // Enter
@@ -422,7 +422,9 @@ function BPNormalEffect({
         Animated.timing(numberScale, { toValue: 0.85, duration: 100, useNativeDriver: true }),
         Animated.spring(numberScale, { toValue: 1, friction: 4, tension: 70, useNativeDriver: true }),
       ]).start();
-      runStep();
+      // 0.5s pause after switching to counting screen, then start counting
+      const startTimer = setTimeout(() => runStep(), 500);
+      timersRef.current.push(startTimer);
     }, 2000);
     timersRef.current.push(phase1Timer);
 
