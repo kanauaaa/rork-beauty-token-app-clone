@@ -28,9 +28,9 @@ export const BP_MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
 // Gear clack — single gachi per BP increment (1カウント=1ガチ)
 const SOUND_CLICK_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/84114460-2b69-493e-91d5-9c06fbcf857a.mp3';
-// Gachan — slot machine lever pull, low clunk → high lock ring, 1.5s
+// Gachan — slot machine lever pull, low clunk → high lock ring (skips first 0.5s, plays 1.5s tail)
 const SOUND_KACHAN_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/fd6a0fce-71cb-4be3-a08e-43ac5ffbecd8.mp3';
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/39141f8a-b3a8-43b7-9719-35c0bc4f2ef0.mp3';
 // Milestone fanfare
 const SOUND_MILESTONE_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/daf07af8-e3bf-46c4-bdf5-db2be233dd05.mp3';
@@ -82,7 +82,8 @@ async function playKachanSound(): Promise<void> {
   try {
     await preloadSounds();
     if (kachanSound) {
-      await kachanSound.setPositionAsync(0);
+      // Skip the first 0.5s; play the 1.5s tail (lever clunk → lock ring)
+      await kachanSound.setPositionAsync(500);
       await kachanSound.playAsync();
     }
   } catch {
@@ -459,9 +460,24 @@ function BPNormalEffect({
       ]).start();
 
       if (isLast) {
-        // Final BP: gachan (slot lever, 1.5s) + blue ring
+        // Final BP: gachan (slot lever, 1.5s tail) + blue ring + total BP pop
         void playKachanSound();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+        // Pop animation on the total BP number (1 → 1.4 → 1)
+        Animated.sequence([
+          Animated.timing(numberScale, {
+            toValue: 1.4,
+            duration: 180,
+            useNativeDriver: true,
+            easing: Easing.out(Easing.quad),
+          }),
+          Animated.spring(numberScale, {
+            toValue: 1,
+            friction: 3,
+            tension: 80,
+            useNativeDriver: true,
+          }),
+        ]).start();
         Animated.timing(blueRing, {
           toValue: 1,
           duration: 1400,
