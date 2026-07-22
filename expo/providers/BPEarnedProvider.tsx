@@ -396,8 +396,8 @@ function BPNormalEffect({
   const rotationRef = useRef(0);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Each step ~180-250ms, total counting phase ≈ 2s
-  const stepInterval = Math.max(80, Math.min(250, 2000 / Math.max(amount, 1)));
+  // Each step = 0.7s, one gachi per digit (ゆったりテンポ)
+  const stepInterval = 700;
 
   useEffect(() => {
     // Enter
@@ -413,7 +413,7 @@ function BPNormalEffect({
       return () => timersRef.current.forEach(clearTimeout);
     }
 
-    // Phase 1: show +amount for 1 second
+    // Phase 1: show +amount for 2 seconds
     const phase1Timer = setTimeout(() => {
       setPhase('counting');
       setDisplayTotal(startTotal);
@@ -425,7 +425,7 @@ function BPNormalEffect({
         Animated.spring(numberScale, { toValue: 1, friction: 4, tension: 70, useNativeDriver: true }),
       ]).start();
       runStep();
-    }, 1000);
+    }, 2000);
     timersRef.current.push(phase1Timer);
 
     function runStep() {
