@@ -411,7 +411,7 @@ function BPNormalEffect({
       return () => timersRef.current.forEach(clearTimeout);
     }
 
-    // Phase 1: show +amount for 2 seconds
+    // Phase 1: show +amount for 1 second
     const phase1Timer = setTimeout(() => {
       setPhase('counting');
       setDisplayTotal(startTotal);
@@ -422,10 +422,10 @@ function BPNormalEffect({
         Animated.timing(numberScale, { toValue: 0.85, duration: 100, useNativeDriver: true }),
         Animated.spring(numberScale, { toValue: 1, friction: 4, tension: 70, useNativeDriver: true }),
       ]).start();
-      // 0.5s pause after switching to counting screen, then start counting
-      const startTimer = setTimeout(() => runStep(), 500);
+      // 1s pause after switching to counting screen, then start counting
+      const startTimer = setTimeout(() => runStep(), 1000);
       timersRef.current.push(startTimer);
-    }, 2000);
+    }, 1000);
     timersRef.current.push(phase1Timer);
 
     function runStep() {
