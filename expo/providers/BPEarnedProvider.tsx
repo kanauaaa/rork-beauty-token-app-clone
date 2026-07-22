@@ -25,12 +25,12 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 export const BP_MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
 
 // ─── Audio (R2-hosted generated assets) ───────────────────────────────────────
-// Gear click — ratchet-pawl tick per BP increment (歯車のカチカチ)
+// Gear clack — heavy gachi per BP increment (歯車がガチガチ噛み合う音)
 const SOUND_CLICK_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/1dd21784-d0d5-4796-b58e-f79f432b7830.mp3';
-// Kacharin — LOW kacha (ratchet) → VERY HIGH rin (bell), 2s, luxury precision feel
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/6424aadd-4352-46c1-8aa0-27a4739f430c.mp3';
+// Gachan — slot machine lever pull, low clunk → high lock ring, 2s
 const SOUND_KACHAN_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/ab78a8b9-a812-4a28-9441-84566a6e5ba3.mp3';
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/39141f8a-b3a8-43b7-9719-35c0bc4f2ef0.mp3';
 // Milestone fanfare
 const SOUND_MILESTONE_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/daf07af8-e3bf-46c4-bdf5-db2be233dd05.mp3';
