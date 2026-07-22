@@ -25,12 +25,12 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 export const BP_MILESTONES = [10, 50, 100, 200, 500, 1000] as const;
 
 // ─── Audio (R2-hosted generated assets) ───────────────────────────────────────
-// Gear click — short mechanical tick per BP increment
+// Gear click — refined precision tick per BP increment (高級時計の歯車)
 const SOUND_CLICK_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/4f736fbb-4faf-4a52-ae81-f72087dcc8bf.mp3';
-// Gacharin — heavy metallic clunk for the final BP (long resonant tail, ~3s)
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/aa6f000e-cd29-4727-b25d-bead68ef3a80.mp3';
+// Kacharin — 2-stage metallic lock sound for the final BP (low kacha → high rin, 2s)
 const SOUND_KACHAN_URL =
-  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/8ef98e71-c1ec-4313-8c96-879fea7fa0fa.mp3';
+  'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/f81f47c3-447c-4b7d-aef6-eac29e03bf55.mp3';
 // Milestone fanfare
 const SOUND_MILESTONE_URL =
   'https://r2-pub.rork.com/generated-audio/s1cjlqro1lgbsgyghi4tu/daf07af8-e3bf-46c4-bdf5-db2be233dd05.mp3';
@@ -459,16 +459,16 @@ function BPNormalEffect({
       ]).start();
 
       if (isLast) {
-        // Final BP: gacharin (heavy metallic clunk, ~3s tail) + blue ring
+        // Final BP: kacharin (2-stage low→high metallic lock, 2s) + blue ring
         void playKachanSound();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
         Animated.timing(blueRing, {
           toValue: 1,
-          duration: 2400,
+          duration: 1800,
           useNativeDriver: true,
           easing: Easing.out(Easing.cubic),
         }).start();
-        const t = setTimeout(() => fadeOut(), 2200);
+        const t = setTimeout(() => fadeOut(), 1600);
         timersRef.current.push(t);
       } else {
         void playClickSound();
