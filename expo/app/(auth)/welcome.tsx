@@ -78,12 +78,6 @@ export default function WelcomeScreen() {
             <Text style={styles.registerButtonText}>新規登録</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.phoneLoginButton}
-            onPress={() => router.push('/(auth)/phone-login' as any)}
-          >
-            <Text style={styles.phoneLoginText}>電話番号でログイン</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </LinearGradient>
@@ -177,15 +171,5 @@ const styles = StyleSheet.create({
     color: '#FF69B4',
     fontSize: 18,
     fontWeight: '600',
-  },
-  phoneLoginButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  phoneLoginText: {
-    color: '#7F8C8D',
-    fontSize: 16,
-    fontWeight: '500',
-    textDecorationLine: 'underline',
   },
 });

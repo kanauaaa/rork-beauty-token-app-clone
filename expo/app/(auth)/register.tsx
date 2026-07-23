@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView,
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
-import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan, Phone } from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -83,7 +83,6 @@ export default function RegisterScreen() {
     name: '',
     email: '',
     password: '',
-    phoneNumber: '',
     role: 'customer' as 'hairdresser' | 'customer',
     gender: 'unspecified' as Gender,
     workplace: '',
@@ -109,7 +108,7 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
 
     
-    if (!formData.name?.trim() || !formData.email?.trim() || !formData.password?.trim() || !formData.phoneNumber?.trim()) {
+    if (!formData.name?.trim() || !formData.email?.trim() || !formData.password?.trim()) {
       Alert.alert('エラー', '必須項目を入力してください');
       return;
     }
@@ -248,7 +247,6 @@ export default function RegisterScreen() {
       name: '美容師A',
       email: 'hairdresser-a@example.com',
       password: 'test123456',
-      phoneNumber: '09012345678',
       role: 'hairdresser' as 'hairdresser' | 'customer',
       gender: 'unspecified' as Gender,
       workplace: '東京都渋谷区',
@@ -271,7 +269,6 @@ export default function RegisterScreen() {
       name: '顧客A',
       email: 'customer-a@example.com',
       password: 'test123456',
-      phoneNumber: '08098765432',
       role: 'customer' as 'hairdresser' | 'customer',
       gender: 'female' as Gender,
       workplace: '',
@@ -452,17 +449,6 @@ export default function RegisterScreen() {
                   placeholder="お名前 *"
                   value={formData.name}
                   onChangeText={(value) => updateFormData('name', value)}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Phone size={20} color="#7F8C8D" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="電話番号 * (例: 09012345678)"
-                  value={formData.phoneNumber}
-                  onChangeText={(value) => updateFormData('phoneNumber', value)}
-                  keyboardType="phone-pad"
                 />
               </View>
 

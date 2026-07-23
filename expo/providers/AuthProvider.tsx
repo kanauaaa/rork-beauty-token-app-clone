@@ -68,7 +68,6 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  phoneNumber: string;
   role: 'hairdresser' | 'customer' | 'admin';
   gender?: Gender;
   availableServices?: ServiceId[];
@@ -97,7 +96,7 @@ interface AuthState {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithCustomToken: (customToken: string) => Promise<void>;
-  register: (userData: Partial<User> & { email: string; password: string; phoneNumber: string; gender?: Gender }) => Promise<void>;
+  register: (userData: Partial<User> & { email: string; password: string; gender?: Gender }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   verifyCustomer: (customerId: string) => Promise<void>;
@@ -129,7 +128,6 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
               id: firebaseUser.uid,
               name: userData.name || 'Unknown',
               email: firebaseUser.email || '',
-              phoneNumber: userData.phoneNumber || '',
               role: userData.role || 'customer',
               gender: userData.gender as Gender | undefined,
               availableServices: userData.availableServices as ServiceId[] | undefined,
@@ -225,10 +223,10 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     }
   };
 
-  const register = async (userData: Partial<User> & { email: string; password: string; phoneNumber: string; gender?: Gender }) => {
+  const register = async (userData: Partial<User> & { email: string; password: string; gender?: Gender }) => {
     setIsLoading(true);
     try {
-      if (!userData.name || !userData.email || !userData.password || !userData.phoneNumber) {
+      if (!userData.name || !userData.email || !userData.password) {
         throw new Error('必須項目が不足しています');
       }
 
@@ -238,20 +236,14 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
 
       const auth = getAuthInstance();
       const db = getDb();
-      
-      const phoneQuery = await getDoc(doc(db, 'phoneNumbers', userData.phoneNumber));
-      if (phoneQuery.exists()) {
-        throw new Error('この電話番号は既に登録されています');
-      }
-      
+
       const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
       const firebaseUser = userCredential.user;
-      
-      
+
+
       const userDocData: any = {
         name: userData.name,
         email: userData.email,
-        phoneNumber: userData.phoneNumber,
         role: userData.role || 'customer',
         gender: userData.gender || 'unspecified',
         profileImageUri: userData.profileImageUri || null,
@@ -295,12 +287,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
       }
 
       await setDoc(doc(db, 'users', firebaseUser.uid), userDocData);
-      
-      await setDoc(doc(db, 'phoneNumbers', userData.phoneNumber), {
-        userId: firebaseUser.uid,
-        createdAt: serverTimestamp(),
-      });
-      
+
       if (userData.referredBy && userData.role === 'customer') {
         try {
           const referrerDoc = await getDoc(doc(db, 'users', userData.referredBy));
