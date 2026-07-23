@@ -6,7 +6,6 @@ import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
 import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan, Phone } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import { trpc } from '@/lib/trpc';
 
 const MapPreviewComponent = ({ latitude, longitude, workplace, address }: {
   latitude: number;
@@ -464,50 +463,8 @@ export default function RegisterScreen() {
                   value={formData.phoneNumber}
                   onChangeText={(value) => updateFormData('phoneNumber', value)}
                   keyboardType="phone-pad"
-                  editable={!phoneVerified}
                 />
               </View>
-
-              {!phoneVerified ? (
-                <TouchableOpacity
-                  style={[styles.verifyButton, isVerifying && styles.disabledButton]}
-                  onPress={handleSendVerification}
-                  disabled={isVerifying || !formData.phoneNumber}
-                >
-                  <Text style={styles.verifyButtonText}>
-                    {isVerifying ? '送信中...' : verificationSent ? '再送信' : 'SMS認証コードを送信'}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.verifiedBadge}>
-                  <Text style={styles.verifiedText}>✓ 電話番号認証完了</Text>
-                </View>
-              )}
-
-              {verificationSent && !phoneVerified && (
-                <View style={styles.verificationSection}>
-                  <View style={styles.inputContainer}>
-                    <Lock size={20} color="#7F8C8D" style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="認証コード (6桁)"
-                      value={verificationCode}
-                      onChangeText={setVerificationCode}
-                      keyboardType="number-pad"
-                      maxLength={6}
-                    />
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.verifyButton, isLoading && styles.disabledButton]}
-                    onPress={handleVerifyCode}
-                    disabled={isLoading || verificationCode.length !== 6}
-                  >
-                    <Text style={styles.verifyButtonText}>
-                      {isLoading ? '確認中...' : '認証コードを確認'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
 
               <View style={styles.inputContainer}>
                 <Mail size={20} color="#7F8C8D" style={styles.inputIcon} />
@@ -1409,35 +1366,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 12,
     paddingHorizontal: 20,
-  },
-  verifyButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center' as const,
-    marginTop: 0,
-  },
-  verifyButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  verifiedBadge: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: 'center' as const,
-    borderWidth: 1,
-    borderColor: 'rgba(76, 175, 80, 0.3)',
-  },
-  verifiedText: {
-    color: '#4CAF50',
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  verificationSection: {
-    gap: 12,
   },
   servicesSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
