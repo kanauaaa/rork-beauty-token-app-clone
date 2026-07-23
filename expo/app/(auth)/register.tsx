@@ -103,12 +103,6 @@ export default function RegisterScreen() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [referrerName, setReferrerName] = useState<string>('');
   const [referralCode, setReferralCode] = useState<string>('');
-  const [verificationSent, setVerificationSent] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const sendSMSMutation = trpc.smsAuth.sendVerificationCode.useMutation();
-  const verifySMSMutation = trpc.smsAuth.verifyCode.useMutation();
   const { register } = useAuth();
 
 
@@ -118,11 +112,6 @@ export default function RegisterScreen() {
     
     if (!formData.name?.trim() || !formData.email?.trim() || !formData.password?.trim() || !formData.phoneNumber?.trim()) {
       Alert.alert('エラー', '必須項目を入力してください');
-      return;
-    }
-
-    if (!phoneVerified) {
-      Alert.alert('エラー', '電話番号の認証を完了してください');
       return;
     }
 
@@ -255,74 +244,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleSendVerification = async () => {
-    if (!formData.phoneNumber) {
-      Alert.alert('エラー', '電話番号を入力してください');
-      return;
-    }
-
-    let phoneNumber = formData.phoneNumber;
-    if (!phoneNumber.startsWith('+')) {
-      phoneNumber = '+81' + phoneNumber.replace(/^0/, '');
-    }
-
-    setIsVerifying(true);
-    try {
-
-      const result = await sendSMSMutation.mutateAsync({ phoneNumber });
-      
-      setVerificationSent(true);
-      
-      const message = result.devCode 
-        ? `${formData.phoneNumber}に認証コードを送信しました。\n\n開発モード: ${result.devCode}`
-        : `${formData.phoneNumber}に認証コードを送信しました。`;
-      
-      Alert.alert('SMS送信完了', message, [{ text: 'OK' }]);
-    } catch (error: any) {
-
-      Alert.alert('SMS送信エラー', error.message || 'SMS送信に失敗しました');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (!verificationCode || verificationCode.length !== 6) {
-      Alert.alert('エラー', '6桁の認証コードを入力してください');
-      return;
-    }
-
-    if (!verificationSent) {
-      Alert.alert('エラー', '先にSMS認証コードを送信してください');
-      return;
-    }
-
-    let phoneNumber = formData.phoneNumber;
-    if (!phoneNumber.startsWith('+')) {
-      phoneNumber = '+81' + phoneNumber.replace(/^0/, '');
-    }
-
-    setIsLoading(true);
-    try {
-
-      await verifySMSMutation.mutateAsync({ 
-        phoneNumber,
-        code: verificationCode 
-      });
-      
-
-      setPhoneVerified(true);
-      setVerificationSent(false);
-      setVerificationCode('');
-      Alert.alert('認証成功', '電話番号の認証が完了しました');
-    } catch (error: any) {
-
-      Alert.alert('エラー', error.message || '認証に失敗しました');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const fillTestData = () => {
     const testData = {
       name: '美容師A',
@@ -342,7 +263,6 @@ export default function RegisterScreen() {
     };
     
     setFormData(testData);
-    setPhoneVerified(true);
     setSelectedServices(new Set<ServiceId>(['cut', 'oneColor', 'wColor', 'perm']));
     Alert.alert('テストデータ入力完了', '美容師の登録情報がセットされました');
   };
@@ -366,7 +286,6 @@ export default function RegisterScreen() {
     };
     
     setFormData(testData);
-    setPhoneVerified(true);
     setSelectedServices(new Set<ServiceId>());
     Alert.alert('テストデータ入力完了', '顧客の登録情報がセットされました');
   };
