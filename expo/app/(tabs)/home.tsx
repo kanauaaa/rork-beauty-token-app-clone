@@ -3,7 +3,7 @@ import { Stack, router } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Platform, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
-import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, Sparkles, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
+import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
@@ -17,7 +17,6 @@ import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
 import { useReferral } from '@/providers/ReferralProvider';
 import { useFavorites } from '@/providers/FavoriteProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
-import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
@@ -39,7 +38,6 @@ function HomeContent() {
   const { addRecord, getTreatmentHistory } = useMedicalRecords();
   const { referralData } = useReferral();
   useFavorites();
-  const { subscription, highlightStatus, activateHighlight, canUseHighlight } = useSubscription();
   const { getBTDistribution, getPendingBTDistribution, getRatingsByCustomer } = useRatings();
   useAssistantBT();
   const { mismatchSessions } = useVisitSessionPolling();
@@ -632,15 +630,6 @@ function HomeContent() {
             <View style={styles.btBreakdownSection}>
               <View style={styles.btBreakdownTitleRow}>
                 <Text style={styles.sectionTitle}>評価項目別獲得BP</Text>
-                {subscription.tier === 'free' && (
-                  <TouchableOpacity
-                    style={styles.upgradeBadge}
-                    onPress={() => router.push('/subscription' as any)}
-                  >
-                    <Sparkles size={14} color="#FFD700" />
-                    <Text style={styles.upgradeBadgeText}>ハイライトを使う</Text>
-                  </TouchableOpacity>
-                )}
               </View>
               
               <View style={styles.btBreakdownCard}>
@@ -746,59 +735,6 @@ function HomeContent() {
             </View>
           );
         })()}
-
-        {user.role === 'hairdresser' && subscription.tier === 'premium' && (
-          <View style={styles.highlightSection}>
-            <Text style={styles.sectionTitle}>ハイライト機能</Text>
-            
-            <View style={styles.highlightCard}>
-              <View style={styles.highlightHeader}>
-                <Sparkles size={28} color="#FFD700" />
-                <View style={styles.highlightInfo}>
-                  <Text style={styles.highlightTitle}>おすすめ表示</Text>
-                  <Text style={styles.highlightSubtitle}>月に1回6時間最上位表示</Text>
-                </View>
-              </View>
-
-              {highlightStatus.isActive && highlightStatus.expiresAt ? (
-                <View style={styles.highlightActive}>
-                  <View style={styles.highlightActiveHeader}>
-                    <Sparkles size={20} color="#FFD700" />
-                    <Text style={styles.highlightActiveText}>ハイライト中</Text>
-                  </View>
-                  <Text style={styles.highlightActiveTime}>
-                    終了時刻: {new Date(highlightStatus.expiresAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                </View>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.highlightButton,
-                      !canUseHighlight() && styles.highlightButtonDisabled
-                    ]}
-                    onPress={() => {
-                      if (user?.id) {
-                        activateHighlight(user.id);
-                      }
-                    }}
-                    disabled={!canUseHighlight()}
-                  >
-                    <Sparkles size={20} color="white" />
-                    <Text style={styles.highlightButtonText}>
-                      {canUseHighlight() ? 'ハイライトを開始' : '本月使用済み'}
-                    </Text>
-                  </TouchableOpacity>
-                  {highlightStatus.lastUsedDate && (
-                    <Text style={styles.highlightLastUsed}>
-                      最終使用日: {new Date(highlightStatus.lastUsedDate).toLocaleDateString('ja-JP')}
-                    </Text>
-                  )}
-                </>
-              )}
-            </View>
-          </View>
-        )}
 
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>クイックアクション</Text>
@@ -2897,22 +2833,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  upgradeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#FFD700',
-  },
-  upgradeBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFD700',
-  },
   btBreakdownCard: {
     backgroundColor: 'white',
     borderRadius: 16,
@@ -3013,84 +2933,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#D4AF37',
-  },
-  highlightSection: {
-    paddingHorizontal: 24,
-    marginBottom: 30,
-  },
-  highlightCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#FFD700',
-  },
-  highlightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 16,
-  },
-  highlightInfo: {
-    flex: 1,
-  },
-  highlightTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    marginBottom: 4,
-  },
-  highlightSubtitle: {
-    fontSize: 13,
-    color: '#7F8C8D',
-  },
-  highlightButton: {
-    backgroundColor: '#FFD700',
-    borderRadius: 12,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  highlightButtonDisabled: {
-    backgroundColor: '#BDC3C7',
-  },
-  highlightButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-  },
-  highlightLastUsed: {
-    fontSize: 12,
-    color: '#7F8C8D',
-    textAlign: 'center',
-  },
-  highlightActive: {
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-  },
-  highlightActiveHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  highlightActiveText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFD700',
-  },
-  highlightActiveTime: {
-    fontSize: 14,
-    color: '#7F8C8D',
   },
   mismatchAlert: {
     backgroundColor: '#FFF5F5',

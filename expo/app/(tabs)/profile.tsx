@@ -4,9 +4,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
-import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
-import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown, Play, Lock } from 'lucide-react-native';
+import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown, Play, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,7 +22,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout, updateProfile, generateWalletForHairdresser } = useAuth();
-  const { subscription, checkSubscriptionStatus } = useSubscription();
   const { createRatingTask } = useRatingTasks();
   const { getBTDistribution, getRatingsByCustomer } = useRatings();
   const { triggerPreview, triggerNormalPreview } = useBPEarned();
@@ -102,12 +100,6 @@ export default function ProfileScreen() {
   }, [user, txHistory]);
 
 
-
-  useEffect(() => {
-    if (user) {
-      void checkSubscriptionStatus(user.id);
-    }
-  }, [user, checkSubscriptionStatus]);
 
   useEffect(() => {
     const loadHairdresserWallet = async () => {
@@ -435,44 +427,6 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
-
-        <TouchableOpacity
-          style={styles.subscriptionCard}
-          onPress={() => router.push('/subscription' as any)}
-        >
-          <LinearGradient
-            colors={subscription.tier === 'premium' ? ['#D4AF37', '#FFD700'] : ['#FF69B4', '#FF1493']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.subscriptionGradient}
-          >
-            <View style={styles.subscriptionContent}>
-              <View style={styles.subscriptionHeader}>
-                {subscription.tier === 'premium' ? (
-                  <Crown size={28} color="white" />
-                ) : (
-                  <Sparkles size={28} color="white" />
-                )}
-                <View style={styles.subscriptionInfo}>
-                  <Text style={styles.subscriptionTitle}>
-                    {subscription.tier === 'premium' ? 'プレミアムプラン' : '無料プラン'}
-                  </Text>
-                  {subscription.tier === 'premium' && subscription.endDate && (
-                    <Text style={styles.subscriptionExpiry}>
-                      有効期限: {new Date(subscription.endDate).toLocaleDateString('ja-JP')}
-                    </Text>
-                  )}
-                </View>
-              </View>
-              <View style={styles.subscriptionAction}>
-                <Text style={styles.subscriptionActionText}>
-                  {subscription.tier === 'premium' ? '管理' : 'アップグレード'}
-                </Text>
-                <CreditCard size={20} color="white" />
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
 
         {user.role === 'customer' && (
           <TouchableOpacity
@@ -2406,58 +2360,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FF69B4',
-  },
-  subscriptionCard: {
-    marginHorizontal: 24,
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  subscriptionGradient: {
-    padding: 24,
-  },
-  subscriptionContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  subscriptionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    flex: 1,
-  },
-  subscriptionInfo: {
-    flex: 1,
-  },
-  subscriptionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold' as const,
-    color: 'white',
-    marginBottom: 4,
-  },
-  subscriptionExpiry: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  subscriptionAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 20,
-  },
-  subscriptionActionText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: 'white',
   },
   referralCard: {
     marginHorizontal: 24,

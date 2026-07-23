@@ -8,8 +8,7 @@ import { getDb } from '@/lib/firebase';
 import { useMedicalRecords, MenuType, MenuDetails } from '@/providers/MedicalRecordProvider';
 import { useDisputes } from '@/providers/DisputeProvider';
 import { useRatings } from '@/providers/RatingProvider';
-import { useSubscription } from '@/providers/SubscriptionProvider';
-import { Inbox, CheckCircle, Clock, User, Calendar, FileText, QrCode, X, Save, History as HistoryIcon, ChevronDown, ChevronUp, Timer, Image as ImageIcon } from 'lucide-react-native';
+import { Inbox, CheckCircle, Clock, User, Calendar, FileText, QrCode, X, Save, History as HistoryIcon, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
@@ -34,9 +33,8 @@ export default function RequestsScreen() {
 
 function RequestsContent() {
   const { user } = useAuth();
-  const { records, treatmentHistory, addRecord, updateRecord, getTreatmentHistory, addTreatmentHistory, getVisibleRecords, isRecordExpired, deleteAllUnwrittenRecords } = useMedicalRecords();
+  const { records, treatmentHistory, addRecord, updateRecord, getTreatmentHistory, addTreatmentHistory, deleteAllUnwrittenRecords } = useMedicalRecords();
   const { getRatingsByCustomer } = useRatings();
-  const { subscription, checkSubscriptionStatus } = useSubscription();
   const { disputes } = useDisputes();
   const insets = useSafeAreaInsets();
 
@@ -61,17 +59,9 @@ function RequestsContent() {
   const [selectedTab, setSelectedTab] = useState<'completed' | 'unwritten'>('completed');
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCustomerHistory, setSelectedCustomerHistory] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedRecords, setSelectedRecords] = useState<Set<string>>(new Set());
   const [expandedRecordIds, setExpandedRecordIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   if (user?.role !== 'hairdresser') {
     return (
@@ -319,8 +309,7 @@ function RequestsContent() {
     setShowHistoryModal(true);
   };
 
-  const isPremium = subscription.tier === 'premium' && subscription.status === 'active';
-  const visibleRecords = getVisibleRecords(user?.id || '', isPremium);
+  const visibleRecords = records;
   const filteredRecords = visibleRecords.filter(record => record.status === selectedTab);
 
   const getStatusColor = (status: string) => {
@@ -384,39 +373,8 @@ function RequestsContent() {
     return labels[menu];
   };
 
-  const getRemainingTime = (record: typeof records[0]): { hours: number; minutes: number; expired: boolean } => {
-    const scanTime = record.qrScanTime || record.requestDate;
-    if (!scanTime) {
-      return { hours: 24, minutes: 0, expired: false };
-    }
-
-    const scanDate = new Date(scanTime);
-    const now = currentTime;
-    const diffMs = now.getTime() - scanDate.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-
-    if (diffHours >= 24) {
-      return { hours: 0, minutes: 0, expired: true };
-    }
-
-    const remainingHours = 24 - diffHours;
-    const hours = Math.floor(remainingHours);
-    const minutes = Math.floor((remainingHours - hours) * 60);
-
-    return { hours, minutes, expired: false };
-  };
-
-  const formatRemainingTime = (hours: number, minutes: number): string => {
-    if (hours === 0 && minutes === 0) {
-      return '期限切れ';
-    }
-    return `残り ${hours}時間 ${minutes}分`;
-  };
-
   const renderRequestCard = ({ item }: { item: typeof records[0] }) => {
     const customerHistory = getTreatmentHistory(item.customerId);
-    const expired = isRecordExpired(item, isPremium);
-    const timeRemaining = getRemainingTime(item);
     const isExpanded = expandedRecordIds.has(item.id);
     
     const toggleExpanded = () => {
@@ -428,26 +386,6 @@ function RequestsContent() {
       }
       setExpandedRecordIds(newSet);
     };
-    
-    if (expired && !isPremium) {
-      return (
-        <View style={styles.expiredCard}>
-          <View style={styles.expiredHeader}>
-            <Clock size={20} color="#E74C3C" />
-            <Text style={styles.expiredTitle}>カルテ閲覧期限切れ</Text>
-          </View>
-          <Text style={styles.expiredText}>
-            {item.customerName}さんのカルテは24時間が経過したため、閲覧できません。
-          </Text>
-          <TouchableOpacity
-            style={styles.upgradeButton}
-            onPress={() => router.push('/subscription' as any)}
-          >
-            <Text style={styles.upgradeButtonText}>プレミアムにアップグレードして永久保存</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
     
     return (
       <View style={styles.requestCard}>
@@ -479,20 +417,7 @@ function RequestsContent() {
                   {getStatusText(item.status, item.id)}
                 </Text>
               </View>
-              {!isPremium && !timeRemaining.expired && (
-                <View style={[
-                  styles.timerBadge,
-                  timeRemaining.hours < 6 ? styles.timerBadgeWarning : styles.timerBadgeNormal
-                ]}>
-                  <Timer size={14} color={timeRemaining.hours < 6 ? '#E74C3C' : '#FF69B4'} />
-                  <Text style={[
-                    styles.timerText,
-                    timeRemaining.hours < 6 ? styles.timerTextWarning : styles.timerTextNormal
-                  ]}>
-                    {formatRemainingTime(timeRemaining.hours, timeRemaining.minutes)}
-                  </Text>
-                </View>
-              )}
+
             </View>
           </View>
 
@@ -2331,33 +2256,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  timerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    borderWidth: 1,
-  },
-  timerBadgeNormal: {
-    backgroundColor: 'rgba(255, 105, 180, 0.1)',
-    borderColor: 'rgba(255, 105, 180, 0.3)',
-  },
-  timerBadgeWarning: {
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-    borderColor: 'rgba(231, 76, 60, 0.3)',
-  },
-  timerText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  timerTextNormal: {
-    color: '#FF69B4',
-  },
-  timerTextWarning: {
-    color: '#E74C3C',
-  },
   historyButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2943,47 +2841,6 @@ const styles = StyleSheet.create({
   },
   secondLiquidInput: {
     flex: 1,
-  },
-  expiredCard: {
-    backgroundColor: '#FFF5F5',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#E74C3C',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  expiredHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  expiredTitle: {
-    fontSize: 16,
-    fontWeight: 'bold' as const,
-    color: '#E74C3C',
-  },
-  expiredText: {
-    fontSize: 14,
-    color: '#2C3E50',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  upgradeButton: {
-    backgroundColor: '#FF69B4',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  upgradeButtonText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: 'white',
   },
   infoNote: {
     fontSize: 13,

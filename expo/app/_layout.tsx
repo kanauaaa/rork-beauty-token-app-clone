@@ -9,7 +9,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { MedicalRecordProvider } from "@/providers/MedicalRecordProvider";
 import { MatchingProvider } from "@/providers/MatchingProvider";
-import { SubscriptionProvider } from "@/providers/SubscriptionProvider";
 import { ReferralProvider } from "@/providers/ReferralProvider";
 import { FavoriteProvider } from "@/providers/FavoriteProvider";
 import { RatingProvider } from "@/providers/RatingProvider";
@@ -76,7 +75,6 @@ function RootLayoutNav() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="subscription" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="booking-confirmation" options={{ presentation: "modal", headerShown: false }} />
     </Stack>
   );
@@ -144,8 +142,7 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <NotificationContext>
-              <SubscriptionProvider>
-                <ReferralProvider>
+              <ReferralProvider>
                   <FavoriteProvider>
                     <RatingProvider>
                       <RatingTaskProvider>
@@ -170,7 +167,6 @@ export default function RootLayout() {
                     </RatingProvider>
                   </FavoriteProvider>
                 </ReferralProvider>
-              </SubscriptionProvider>
               </NotificationContext>
             </AuthProvider>
             </QueryClientProvider>

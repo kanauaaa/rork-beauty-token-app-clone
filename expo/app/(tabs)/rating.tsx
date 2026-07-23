@@ -8,7 +8,6 @@ import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
 import { useDisputes } from '@/providers/DisputeProvider';
-import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown, Info } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
@@ -48,7 +47,6 @@ function RatingContent() {
   const { addRecord, getTreatmentHistory } = useMedicalRecords();
   const { pendingSessions, mismatchSessions } = useVisitSessionPolling();
   const { disputes } = useDisputes();
-  const { subscription } = useSubscription();
   const insets = useSafeAreaInsets();
 
   const [paidAmount, setPaidAmount] = useState('');
@@ -386,7 +384,7 @@ function RatingContent() {
     try {
       let photoUrl: string | undefined = undefined;
 
-      if (savePhotoToRecord && selectedPhoto && subscription.tier === 'premium') {
+      if (savePhotoToRecord && selectedPhoto) {
 
         setUploadingPhoto(true);
         
@@ -1489,55 +1487,25 @@ Alert.alert(
 
                 <View style={styles.photoSection}>
                   <TouchableOpacity
-                    style={[
-                      styles.photoCheckboxContainer,
-                      subscription.tier !== 'premium' && styles.photoCheckboxContainerDisabled
-                    ]}
+                    style={styles.photoCheckboxContainer}
                     onPress={() => {
-                      if (subscription.tier === 'premium') {
-                        setSavePhotoToRecord(!savePhotoToRecord);
-                      } else {
-                        Alert.alert(
-                          'プレミアム機能',
-                          '写真保存機能はプレミアムプラン限定です。',
-                          [
-                            { text: 'キャンセル', style: 'cancel' },
-                            { 
-                              text: 'プレミアムに加入', 
-                              onPress: () => router.push('/subscription' as any)
-                            }
-                          ]
-                        );
-                      }
+                      setSavePhotoToRecord(!savePhotoToRecord);
                     }}
-                    disabled={subscription.tier !== 'premium'}
                   >
                     <View style={[
                       styles.checkbox,
-                      savePhotoToRecord && styles.checkboxChecked,
-                      subscription.tier !== 'premium' && styles.checkboxDisabled
+                      savePhotoToRecord && styles.checkboxChecked
                     ]}>
                       {savePhotoToRecord && <Check size={16} color="white" />}
                     </View>
                     <View style={styles.photoCheckboxTextContainer}>
-                      <Text style={[
-                        styles.photoCheckboxLabel,
-                        subscription.tier !== 'premium' && styles.photoCheckboxLabelDisabled
-                      ]}>
-                        写真をカルテに保存（プレミアム）
+                      <Text style={styles.photoCheckboxLabel}>
+                        写真をカルテに保存
                       </Text>
-                      {subscription.tier !== 'premium' && (
-                        <TouchableOpacity
-                          style={styles.premiumBadge}
-                          onPress={() => router.push('/subscription' as any)}
-                        >
-                          <Text style={styles.premiumBadgeText}>プレミアムで利用可能</Text>
-                        </TouchableOpacity>
-                      )}
                     </View>
                   </TouchableOpacity>
 
-                  {savePhotoToRecord && subscription.tier === 'premium' && (
+                  {savePhotoToRecord && (
                     <View style={styles.photoUploadSection}>
                       <TouchableOpacity
                         style={styles.photoSelectButton}
@@ -3126,10 +3094,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  photoCheckboxContainerDisabled: {
-    backgroundColor: '#F8F9FA',
-    borderColor: '#E0E0E0',
-  },
   checkbox: {
     width: 24,
     height: 24,
@@ -3144,10 +3108,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF69B4',
     borderColor: '#FF69B4',
   },
-  checkboxDisabled: {
-    borderColor: '#BDC3C7',
-    backgroundColor: '#E0E0E0',
-  },
   photoCheckboxTextContainer: {
     flex: 1,
     flexDirection: 'row' as const,
@@ -3157,20 +3117,6 @@ const styles = StyleSheet.create({
   photoCheckboxLabel: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: '#2C3E50',
-  },
-  photoCheckboxLabelDisabled: {
-    color: '#95A5A6',
-  },
-  premiumBadge: {
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  premiumBadgeText: {
-    fontSize: 12,
-    fontWeight: 'bold' as const,
     color: '#2C3E50',
   },
   photoUploadSection: {

@@ -8,7 +8,6 @@ import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import { WebView as ExpoWebView } from 'react-native-webview';
 import { useFavorites } from '@/providers/FavoriteProvider';
 import * as Haptics from 'expo-haptics';
-import { useSubscription } from '@/providers/SubscriptionProvider';
 import { router } from 'expo-router';
 import { getDb } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
@@ -51,7 +50,6 @@ interface Hairdresser {
 export default function SearchScreen() {
   const { user } = useAuth();
   const { isFavorite, addFavorite, removeFavorite, scoutRequests, getScoutRequestsForCustomer, acceptScoutRequest, rejectScoutRequest } = useFavorites();
-  const { highlightStatus } = useSubscription();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -173,12 +171,6 @@ export default function SearchScreen() {
     }
 
     return filtered.sort((a, b) => {
-      const aIsHighlighted = highlightStatus.isActive;
-      const bIsHighlighted = highlightStatus.isActive;
-      
-      if (aIsHighlighted && !bIsHighlighted) return -1;
-      if (!aIsHighlighted && bIsHighlighted) return 1;
-      
       if (selectedRegion) {
         const region = regions.find(r => r.id === selectedRegion);
         if (region) {
@@ -189,7 +181,7 @@ export default function SearchScreen() {
       }
       return 0;
     });
-  }, [hairdressers, searchQuery, selectedRegion, regions, highlightStatus.isActive]);
+  }, [hairdressers, searchQuery, selectedRegion, regions]);
 
   const generateMapHTML = () => {
     const hairdressers = filteredHairdressers.slice(0, 10);
@@ -361,15 +353,8 @@ export default function SearchScreen() {
       ? calculateDistance(user.latitude, user.longitude, item.latitude, item.longitude)
       : null;
     const isFav = isFavorite(item.id);
-    const isHighlighted = highlightStatus.isActive && user?.role === 'hairdresser' && user.id === item.id;
-
     return (
-      <View style={[styles.hairdresserCard, isHighlighted && styles.highlightedCard]}>
-        {isHighlighted && (
-          <View style={styles.highlightBadge}>
-            <Text style={styles.highlightBadgeText}>✨ おすすめ</Text>
-          </View>
-        )}
+      <View style={styles.hairdresserCard}>
         <View style={styles.cardHeader}>
           <View style={styles.cardTopRow}>
             <Text style={styles.hairdresserName}>{item.name}</Text>
@@ -1092,31 +1077,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 
-  highlightedCard: {
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
-  },
-  highlightBadge: {
-    position: 'absolute' as const,
-    top: -8,
-    left: 12,
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  highlightBadgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: 'white',
-  },
   modalContainer: {
     flex: 1,
   },

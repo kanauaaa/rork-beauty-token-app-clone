@@ -180,8 +180,6 @@ interface MedicalRecordState {
   getRecordsByCustomer: (customerId: string) => MedicalRecord[];
   getTreatmentHistory: (customerId: string) => TreatmentHistory[];
   addTreatmentHistory: (history: Omit<TreatmentHistory, 'id' | 'createdAt'>) => Promise<void>;
-  getVisibleRecords: (userId: string, isPremium: boolean) => MedicalRecord[];
-  isRecordExpired: (record: MedicalRecord, isPremium: boolean) => boolean;
   deleteAllUnwrittenRecords: () => Promise<number>;
 }
 
@@ -482,37 +480,6 @@ export const [MedicalRecordProvider, useMedicalRecords] = createContextHook((): 
     await addDoc(historyRef, newHistoryData);
   }, [user]);
 
-  const isRecordExpired = useCallback((record: MedicalRecord, isPremium: boolean): boolean => {
-    if (isPremium) {
-      return false;
-    }
-    
-    const scanTime = record.qrScanTime || record.requestDate;
-    if (!scanTime) return false;
-    
-    const scanDate = new Date(scanTime);
-    const now = new Date();
-    const hoursDiff = (now.getTime() - scanDate.getTime()) / (1000 * 60 * 60);
-    
-    return hoursDiff > 24;
-  }, []);
-
-  const getVisibleRecords = useCallback((userId: string, isPremium: boolean): MedicalRecord[] => {
-    
-    if (isPremium) {
-      return records;
-    }
-    
-    const visibleRecords = records.filter(record => {
-      const expired = isRecordExpired(record, isPremium);
-      if (expired) {
-      }
-      return !expired;
-    });
-    
-    return visibleRecords;
-  }, [records, isRecordExpired]);
-
   const deleteAllUnwrittenRecords = useCallback(async (): Promise<number> => {
     if (!user) return 0;
 
@@ -543,8 +510,6 @@ export const [MedicalRecordProvider, useMedicalRecords] = createContextHook((): 
     getRecordsByCustomer,
     getTreatmentHistory,
     addTreatmentHistory,
-    getVisibleRecords,
-    isRecordExpired,
     deleteAllUnwrittenRecords,
-  }), [records, treatmentHistory, isLoading, addRecord, updateRecord, deleteRecord, getRecordsByCustomer, getTreatmentHistory, addTreatmentHistory, getVisibleRecords, isRecordExpired, deleteAllUnwrittenRecords]);
+  }), [records, treatmentHistory, isLoading, addRecord, updateRecord, deleteRecord, getRecordsByCustomer, getTreatmentHistory, addTreatmentHistory, deleteAllUnwrittenRecords]);
 });

@@ -1,7 +1,6 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { SubscriptionTier, SubscriptionStatus } from './SubscriptionProvider';
 import { getAuthInstance, getDb } from '@/lib/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -83,8 +82,6 @@ export interface User {
   latitude?: number;
   longitude?: number;
   address?: string;
-  subscriptionTier?: SubscriptionTier;
-  subscriptionStatus?: SubscriptionStatus;
   referredBy?: string;
   walletAddress?: string;
   isVerified?: boolean;
@@ -143,8 +140,6 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
               latitude: userData.latitude,
               longitude: userData.longitude,
               address: userData.address,
-              subscriptionTier: userData.subscriptionTier || 'free',
-              subscriptionStatus: userData.subscriptionStatus || 'inactive',
               referredBy: userData.referredBy,
               walletAddress: userData.walletAddress,
               isVerified: userData.isVerified || false,
@@ -265,8 +260,6 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         userDocData.recommendations = [];
         userDocData.recommendationBt = 0;
         userDocData.btBalance = 0;
-        userDocData.subscriptionTier = 'free';
-        userDocData.subscriptionStatus = 'inactive';
         
         try {
           const { ethers } = await import('ethers');
