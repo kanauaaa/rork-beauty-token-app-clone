@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Modal, Switch, Image, ActivityIndicator, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
 import { useSubscription } from '@/providers/SubscriptionProvider';
 import { useRatings } from '@/providers/RatingProvider';
 import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Crown, CreditCard, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Waves, AlignJustify, Link, Hand, ChevronDown, Play, Lock } from 'lucide-react-native';
@@ -642,7 +642,7 @@ export default function ProfileScreen() {
                     { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: distribution.straightening },
                     { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: distribution.extensions },
                     { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: distribution.massage },
-                  ];
+                  ].filter(item => isTechCategoryAvailable(item.id, user?.availableServices));
                   const techTotal = techItems.reduce((s, item) => s + item.value, 0);
                   return (
                     <>

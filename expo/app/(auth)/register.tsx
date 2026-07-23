@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useAuth, Gender } from '@/providers/AuthProvider';
+import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
 import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan, Phone } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -96,6 +96,7 @@ export default function RegisterScreen() {
     address: '',
     referredBy: '' as string | undefined,
   });
+  const [selectedServices, setSelectedServices] = useState<Set<ServiceId>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [showMapPreview, setShowMapPreview] = useState(false);
@@ -130,6 +131,11 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (formData.role === 'hairdresser' && selectedServices.size === 0) {
+      Alert.alert('エラー', '対応可能な施術を少なくとも1つ選択してください');
+      return;
+    }
+
     if (formData.gender === 'unspecified') {
       Alert.alert('エラー', '性別を選択してください');
       return;
@@ -138,7 +144,10 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
 
-      await register(formData);
+      await register({
+        ...formData,
+        availableServices: formData.role === 'hairdresser' ? Array.from(selectedServices) : undefined,
+      });
 
     } catch (error) {
 
@@ -151,6 +160,18 @@ export default function RegisterScreen() {
 
   const updateFormData = (key: string, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleService = (service: ServiceId) => {
+    setSelectedServices(prev => {
+      const next = new Set(prev);
+      if (next.has(service)) {
+        next.delete(service);
+      } else {
+        next.add(service);
+      }
+      return next;
+    });
   };
 
   const getCurrentLocation = async () => {
@@ -322,6 +343,7 @@ export default function RegisterScreen() {
     
     setFormData(testData);
     setPhoneVerified(true);
+    setSelectedServices(new Set<ServiceId>(['cut', 'oneColor', 'wColor', 'perm']));
     Alert.alert('テストデータ入力完了', '美容師の登録情報がセットされました');
   };
 
@@ -345,6 +367,7 @@ export default function RegisterScreen() {
     
     setFormData(testData);
     setPhoneVerified(true);
+    setSelectedServices(new Set<ServiceId>());
     Alert.alert('テストデータ入力完了', '顧客の登録情報がセットされました');
   };
 
@@ -665,6 +688,111 @@ export default function RegisterScreen() {
                       multiline
                       numberOfLines={3}
                     />
+                  </View>
+
+                  {/* ── 対応可能な施術選択 ── */}
+                  <View style={styles.servicesSection}>
+                    <Text style={styles.servicesTitle}>対応可能な施術 *</Text>
+                    <Text style={styles.servicesSubtitle}>複数選択可能・最低1つ選択してください</Text>
+
+                    {/* カット */}
+                    <Text style={styles.servicesCategoryLabel}>カット</Text>
+                    <View style={styles.servicesGrid}>
+                      {([
+                        { id: 'cut' as ServiceId, label: 'カット' },
+                      ]).map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.serviceChip,
+                            selectedServices.has(item.id) && styles.serviceChipActive,
+                          ]}
+                          onPress={() => toggleService(item.id)}
+                        >
+                          <Text style={[
+                            styles.serviceChipText,
+                            selectedServices.has(item.id) && styles.serviceChipTextActive,
+                          ]}>{item.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* カラー */}
+                    <Text style={styles.servicesCategoryLabel}>カラー</Text>
+                    <View style={styles.servicesGrid}>
+                      {([
+                        { id: 'oneColor' as ServiceId, label: 'ワンカラー' },
+                        { id: 'wColor' as ServiceId, label: 'Wカラー' },
+                      ]).map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.serviceChip,
+                            selectedServices.has(item.id) && styles.serviceChipActive,
+                          ]}
+                          onPress={() => toggleService(item.id)}
+                        >
+                          <Text style={[
+                            styles.serviceChipText,
+                            selectedServices.has(item.id) && styles.serviceChipTextActive,
+                          ]}>{item.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* パーマ */}
+                    <Text style={styles.servicesCategoryLabel}>パーマ</Text>
+                    <View style={styles.servicesGrid}>
+                      {([
+                        { id: 'perm' as ServiceId, label: 'パーマ' },
+                      ]).map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.serviceChip,
+                            selectedServices.has(item.id) && styles.serviceChipActive,
+                          ]}
+                          onPress={() => toggleService(item.id)}
+                        >
+                          <Text style={[
+                            styles.serviceChipText,
+                            selectedServices.has(item.id) && styles.serviceChipTextActive,
+                          ]}>{item.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {/* その他 */}
+                    <Text style={styles.servicesCategoryLabel}>その他</Text>
+                    <View style={styles.servicesGrid}>
+                      {([
+                        { id: 'straightening' as ServiceId, label: '縮毛矯正' },
+                        { id: 'treatment' as ServiceId, label: 'トリートメント' },
+                        { id: 'headSpa' as ServiceId, label: 'ヘッドスパ' },
+                        { id: 'hairSet' as ServiceId, label: 'ヘアセット' },
+                        { id: 'extensions' as ServiceId, label: 'エクステ' },
+                      ]).map(item => (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.serviceChip,
+                            selectedServices.has(item.id) && styles.serviceChipActive,
+                          ]}
+                          onPress={() => toggleService(item.id)}
+                        >
+                          <Text style={[
+                            styles.serviceChipText,
+                            selectedServices.has(item.id) && styles.serviceChipTextActive,
+                          ]}>{item.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {selectedServices.size > 0 && (
+                      <Text style={styles.servicesSelectedCount}>
+                        {selectedServices.size}件選択中 ✓
+                      </Text>
+                    )}
                   </View>
                 </React.Fragment>
               )}
@@ -1391,5 +1519,60 @@ const styles = StyleSheet.create({
   },
   verificationSection: {
     gap: 12,
+  },
+  servicesSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 16,
+    gap: 8,
+  },
+  servicesTitle: {
+    fontSize: 16,
+    fontWeight: 'bold' as const,
+    color: '#2C3E50',
+  },
+  servicesSubtitle: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    marginBottom: 4,
+  },
+  servicesCategoryLabel: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#FF69B4',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  servicesGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
+  },
+  serviceChip: {
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+  },
+  serviceChipActive: {
+    backgroundColor: '#FF69B4',
+    borderColor: '#FF69B4',
+  },
+  serviceChipText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: '#2C3E50',
+  },
+  serviceChipTextActive: {
+    color: 'white',
+  },
+  servicesSelectedCount: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#4CAF50',
+    textAlign: 'right' as const,
+    marginTop: 4,
   },
 });

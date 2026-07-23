@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router } from 'expo-router';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
 import { useRatings, Assistant, ServiceDetails } from '@/providers/RatingProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
@@ -1376,7 +1376,7 @@ Alert.alert(
                   </Text>
                   {(() => {
                     const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
-                    const techAllocations = btAllocations.filter(a => techIds.includes(a.id));
+                    const techAllocations = btAllocations.filter(a => techIds.includes(a.id) && isTechCategoryAvailable(a.id, user?.availableServices));
                     const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
                     const techTotal = techAllocations.reduce((s, a) => s + a.amount, 0);
                     const techSkillItems: SkillItem[] = techAllocations.map(a => ({

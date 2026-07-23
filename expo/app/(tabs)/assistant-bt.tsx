@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Scissors, Palette, Waves, AlignJustify, Link, Hand, Heart, Clock, Trash2, Users, Plus, Minus, Camera, X, QrCode, Send, ChevronDown } from 'lucide-react-native';
@@ -551,7 +551,7 @@ export default function AssistantBTScreen() {
                     </Text>
                     {(() => {
                       const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
-                      const techAllocations = btAllocations.filter(a => techIds.includes(a.id));
+                      const techAllocations = btAllocations.filter(a => techIds.includes(a.id) && isTechCategoryAvailable(a.id, user?.availableServices));
                       const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
                       const techTotal = techAllocations.reduce((s, a) => s + a.amount, 0);
                       const techSkillItems: SkillItem[] = techAllocations.map(a => ({

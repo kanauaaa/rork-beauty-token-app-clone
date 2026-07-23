@@ -29,6 +29,41 @@ import {
 
 export type Gender = 'male' | 'female' | 'unspecified';
 
+export type ServiceId =
+  | 'cut'
+  | 'oneColor'
+  | 'wColor'
+  | 'perm'
+  | 'straightening'
+  | 'treatment'
+  | 'headSpa'
+  | 'hairSet'
+  | 'extensions';
+
+/** Map a tech-chart category ID to whether the hairdresser offers it. */
+export function isTechCategoryAvailable(
+  techId: string,
+  services: ServiceId[] | undefined,
+): boolean {
+  if (!services || services.length === 0) return true; // backward compat
+  switch (techId) {
+    case 'cut':
+      return services.includes('cut');
+    case 'color':
+      return services.includes('oneColor') || services.includes('wColor');
+    case 'perm':
+      return services.includes('perm');
+    case 'straightening':
+      return services.includes('straightening');
+    case 'extensions':
+      return services.includes('extensions');
+    case 'massage':
+      return services.includes('headSpa');
+    default:
+      return true;
+  }
+}
+
 export interface User {
   id: string;
   name: string;
@@ -36,6 +71,7 @@ export interface User {
   phoneNumber: string;
   role: 'hairdresser' | 'customer' | 'admin';
   gender?: Gender;
+  availableServices?: ServiceId[];
   workplace?: string;
   workplaceName?: string;
   hairdresserId?: string;
@@ -96,6 +132,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
               phoneNumber: userData.phoneNumber || '',
               role: userData.role || 'customer',
               gender: userData.gender as Gender | undefined,
+              availableServices: userData.availableServices as ServiceId[] | undefined,
               workplace: userData.workplace,
               workplaceName: userData.workplaceName,
               hairdresserId: userData.hairdresserId,
@@ -228,6 +265,7 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         userDocData.workplace = userData.workplace || null;
         userDocData.workplaceName = userData.workplaceName || null;
         userDocData.hairdresserId = 'ST' + Math.random().toString(36).substr(2, 6);
+        userDocData.availableServices = userData.availableServices || [];
         userDocData.selfIntroduction = userData.selfIntroduction || null;
         userDocData.latitude = userData.latitude || null;
         userDocData.longitude = userData.longitude || null;

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Stack, router } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Platform, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
 import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, Sparkles, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -659,7 +659,7 @@ function HomeContent() {
                     { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
                     { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
                     { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
-                  ];
+                  ].filter(item => isTechCategoryAvailable(item.id, user?.availableServices));
                   const techTotal = techItems.reduce((s, item) => s + item.value, 0);
                   const pendingTechTotal = techItems.reduce((s, item) => s + (item.pending || 0), 0);
                   const grandTotal = btDistribution.total;
