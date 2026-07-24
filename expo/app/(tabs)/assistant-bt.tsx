@@ -1,13 +1,12 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Scissors, Palette, Waves, AlignJustify, Link, Hand, Heart, Clock, Trash2, Users, Plus, Minus, Camera, X, QrCode, Send, ChevronDown } from 'lucide-react-native';
+import { Scissors, Heart, Clock, Trash2, Users, Plus, Minus, Camera, X, QrCode, Send } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
-import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 
 interface BTAllocation {
@@ -30,17 +29,11 @@ export default function AssistantBTScreen() {
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const alertShownRef = useRef(false);
-  const [technicalExpanded, setTechnicalExpanded] = useState(false);
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
-    { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
-    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#FF8C42' },
-    { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
-    { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
-    { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
-    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
+    { id: 'technical', name: '技術', amount: 0, icon: Scissors, color: '#FF69B4' },
     { id: 'service', name: '接客・カウンセリング', amount: 0, icon: Heart, color: '#FF69B4' },
-    { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
+    { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#3498DB' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
   ]);
 
@@ -549,102 +542,53 @@ export default function AssistantBTScreen() {
                     <Text style={styles.allocationsSectionSubtitle}>
                       各評価項目にBPを振り分けてください
                     </Text>
-                    {(() => {
-                      const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
-                      const techAllocations = btAllocations.filter(a => techIds.includes(a.id) && isTechCategoryAvailable(a.id, user?.availableServices));
-                      const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
-                      const techTotal = techAllocations.reduce((s, a) => s + a.amount, 0);
-                      const techSkillItems: SkillItem[] = techAllocations.map(a => ({
-                        id: a.id,
-                        icon: a.icon,
-                        color: a.color,
-                        label: a.name,
-                        value: a.amount,
-                      }));
-                      return (
-                        <>
-                          <TouchableOpacity
-                            style={[styles.allocationCard, { borderLeftWidth: 3, borderLeftColor: '#FF69B4' }]}
-                            onPress={() => setTechnicalExpanded(!technicalExpanded)}
-                            activeOpacity={0.7}
-                          >
+                    {btAllocations.map((allocation) => {
+                      if (allocation.id === 'discarded') {
+                        const IconComponent = allocation.icon;
+                        return (
+                          <View key={allocation.id} style={styles.allocationCard}>
                             <View style={styles.allocationHeader}>
-                              <ChevronDown
-                                size={20}
-                                color="#FF69B4"
-                                style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
-                              />
-                              <Text style={[styles.allocationName, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
+                              <IconComponent size={24} color={allocation.color} />
+                              <Text style={styles.allocationName}>{allocation.name}</Text>
                             </View>
-                            <View style={styles.allocationAmountContainer}>
-                              <Text style={[styles.allocationAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
-                              <Text style={styles.allocationUnit}>BP</Text>
+                            <View style={styles.allocationControls}>
+                              <TouchableOpacity
+                                style={styles.allocationButton}
+                                onPress={() => updateBTAllocation(allocation.id, -1)}
+                                disabled={allocation.amount === 0}
+                              >
+                                <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                              </TouchableOpacity>
+                              <View style={styles.allocationAmountContainer}>
+                                <Text style={styles.allocationAmount}>{allocation.amount}</Text>
+                                <Text style={styles.allocationUnit}>BP</Text>
+                              </View>
+                              <TouchableOpacity
+                                style={styles.allocationButton}
+                                onPress={() => updateBTAllocation(allocation.id, 1)}
+                                disabled={remainingAssistantBT <= 0}
+                              >
+                                <Plus size={20} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                              </TouchableOpacity>
                             </View>
-                          </TouchableOpacity>
-
-                          {technicalExpanded && (
-                            <View style={{ marginLeft: 8, marginBottom: 12 }}>
-                              <TechnicalSkillChart
-                                items={techSkillItems}
-                                total={techTotal}
-                                interactive
-                                onAdjust={(id, delta) => updateBTAllocation(id, delta)}
-                                canIncrease={() => remainingAssistantBT > 0}
-                                canDecrease={(id) => techAllocations.find(a => a.id === id)?.amount !== 0}
-                              />
-                            </View>
-                          )}
-
-                          {otherItems.map((allocation) => {
-                            if (allocation.id === 'discarded') {
-                              const IconComponent = allocation.icon;
-                              return (
-                                <View key={allocation.id} style={styles.allocationCard}>
-                                  <View style={styles.allocationHeader}>
-                                    <IconComponent size={24} color={allocation.color} />
-                                    <Text style={styles.allocationName}>{allocation.name}</Text>
-                                  </View>
-                                  <View style={styles.allocationControls}>
-                                    <TouchableOpacity
-                                      style={styles.allocationButton}
-                                      onPress={() => updateBTAllocation(allocation.id, -1)}
-                                      disabled={allocation.amount === 0}
-                                    >
-                                      <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                    </TouchableOpacity>
-                                    <View style={styles.allocationAmountContainer}>
-                                      <Text style={styles.allocationAmount}>{allocation.amount}</Text>
-                                      <Text style={styles.allocationUnit}>BP</Text>
-                                    </View>
-                                    <TouchableOpacity
-                                      style={styles.allocationButton}
-                                      onPress={() => updateBTAllocation(allocation.id, 1)}
-                                      disabled={remainingAssistantBT <= 0}
-                                    >
-                                      <Plus size={20} color={remainingAssistantBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                    </TouchableOpacity>
-                                  </View>
-                                </View>
-                              );
-                            }
-                            return (
-                              <CategoryProgressBar
-                                key={allocation.id}
-                                icon={allocation.icon}
-                                color={allocation.color}
-                                label={allocation.name}
-                                value={allocation.amount}
-                                maxValue={totalAvailableBT}
-                                interactive
-                                onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
-                                canIncrease={remainingAssistantBT > 0}
-                                canDecrease={allocation.amount > 0}
-                              />
-                            );
-                          })}
-                        </>
+                          </View>
+                        );
+                      }
+                      return (
+                        <CategoryProgressBar
+                          key={allocation.id}
+                          icon={allocation.icon}
+                          color={allocation.color}
+                          label={allocation.name}
+                          value={allocation.amount}
+                          maxValue={totalAvailableBT}
+                          interactive
+                          onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
+                          canIncrease={remainingAssistantBT > 0}
+                          canDecrease={allocation.amount > 0}
+                        />
                       );
-                    })()}
+                    })}
                   </View>
 
                   <TouchableOpacity

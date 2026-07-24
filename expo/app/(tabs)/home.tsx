@@ -2,15 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { Stack, router } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Platform, Image, TextInput, KeyboardAvoidingView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
-import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, AlertCircle, Upload, CheckCircle, Send, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown } from 'lucide-react-native';
+import { useAuth } from '@/providers/AuthProvider';
+import { Award, Users, QrCode, Search, Star, X, MapPin, Navigation, Camera, User, Gift, UserPlus, Zap, Heart, Clock, AlertCircle, Upload, CheckCircle, Send, Scissors } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import QRCodeComponent from '@/components/QRCode';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
-import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
@@ -61,7 +60,6 @@ function HomeContent() {
   const [receiptPhotoUrl, setReceiptPhotoUrl] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set());
-  const [technicalExpanded, setTechnicalExpanded] = useState(false);
 
 
 
@@ -634,55 +632,17 @@ function HomeContent() {
               
               <View style={styles.btBreakdownCard}>
                 {(() => {
-                  const toBreakdown = (a: number, b: number, l1: string, l2: string) => {
-                    const t = a + b;
-                    if (t === 0) return undefined;
-                    const p1 = Math.round((a / t) * 100);
-                    return [{ label: l1, percent: p1 }, { label: l2, percent: 100 - p1 }];
-                  };
-                  const bd = btDistribution.breakdown;
-                  const techItems: SkillItem[] = [
-                    { id: 'cut', icon: Scissors, color: '#FF69B4', label: 'カット', value: btDistribution.cut, pending: pendingBTDistribution.cut, breakdown: toBreakdown(bd.cut.mens, bd.cut.ladies, 'メンズ', 'レディース') },
-                    { id: 'color', icon: Palette, color: '#FF8C42', label: 'カラー', value: btDistribution.color, pending: pendingBTDistribution.color, breakdown: toBreakdown(bd.color.oneColor, bd.color.wColor, 'ワンカラー', 'Wカラー') },
-                    { id: 'perm', icon: Waves, color: '#9B59B6', label: 'パーマ', value: btDistribution.perm, pending: pendingBTDistribution.perm, breakdown: toBreakdown(bd.perm.mens, bd.perm.ladies, 'メンズ', 'レディース') },
-                    { id: 'straightening', icon: AlignJustify, color: '#3498DB', label: '縮毛矯正', value: btDistribution.straightening, pending: pendingBTDistribution.straightening },
-                    { id: 'extensions', icon: Link, color: '#2ECC71', label: 'エクステ', value: btDistribution.extensions, pending: pendingBTDistribution.extensions },
-                    { id: 'massage', icon: Hand, color: '#F1C40F', label: 'マッサージ', value: btDistribution.massage, pending: pendingBTDistribution.massage },
-                  ].filter(item => isTechCategoryAvailable(item.id, user?.availableServices));
-                  const techTotal = techItems.reduce((s, item) => s + item.value, 0);
-                  const pendingTechTotal = techItems.reduce((s, item) => s + (item.pending || 0), 0);
                   const grandTotal = btDistribution.total;
                   return (
                     <>
-                      <TouchableOpacity
-                        style={[styles.btBreakdownItem, { borderLeftWidth: 3, borderLeftColor: '#FF69B4', paddingLeft: 12 }]}
-                        onPress={() => setTechnicalExpanded(!technicalExpanded)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.btBreakdownHeader}>
-                          <ChevronDown
-                            size={16}
-                            color="#FF69B4"
-                            style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
-                          />
-                          <Text style={[styles.btBreakdownLabel, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
-                        </View>
-                        <View style={styles.btBreakdownValueColumn}>
-                          <View style={styles.btBreakdownValue}>
-                            <Text style={[styles.btBreakdownAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
-                            <Text style={styles.btBreakdownUnit}>BP</Text>
-                          </View>
-                          {pendingTechTotal > 0 && (
-                            <Text style={styles.pendingBPText}>+{pendingTechTotal}（仮）</Text>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-
-                      {technicalExpanded && (
-                        <View style={{ marginLeft: 8, marginBottom: 12 }}>
-                          <TechnicalSkillChart items={techItems} total={techTotal} />
-                        </View>
-                      )}
+                      <CategoryProgressBar
+                        icon={Scissors}
+                        color="#FF69B4"
+                        label="技術"
+                        value={btDistribution.technical}
+                        pending={pendingBTDistribution.technical}
+                        maxValue={grandTotal}
+                      />
 
                       <CategoryProgressBar
                         icon={Heart}

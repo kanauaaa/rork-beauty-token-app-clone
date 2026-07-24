@@ -70,12 +70,7 @@ export interface Rating {
 }
 
 export interface BTDistribution {
-  cut: number;
-  color: number;
-  perm: number;
-  straightening: number;
-  extensions: number;
-  massage: number;
+  technical: number;
   service: number;
   timeManagement: number;
   assistant: number;
@@ -102,12 +97,7 @@ export interface PendingBP {
 }
 
 export interface PendingBTDistribution {
-  cut: number;
-  color: number;
-  perm: number;
-  straightening: number;
-  extensions: number;
-  massage: number;
+  technical: number;
   service: number;
   timeManagement: number;
   assistant: number;
@@ -500,12 +490,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     
     
     const distribution: BTDistribution = {
-      cut: 0,
-      color: 0,
-      perm: 0,
-      straightening: 0,
-      extensions: 0,
-      massage: 0,
+      technical: 0,
       service: 0,
       timeManagement: 0,
       assistant: 0,
@@ -518,36 +503,18 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
       },
     };
 
+    const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage', 'technical'];
+
     hairdresserRatings.forEach(rating => {
       rating.categories.forEach(category => {
-        switch (category.id) {
-          case 'cut':
-            distribution.cut += category.btAmount;
-            break;
-          case 'color':
-            distribution.color += category.btAmount;
-            break;
-          case 'perm':
-            distribution.perm += category.btAmount;
-            break;
-          case 'straightening':
-            distribution.straightening += category.btAmount;
-            break;
-          case 'extensions':
-            distribution.extensions += category.btAmount;
-            break;
-          case 'massage':
-            distribution.massage += category.btAmount;
-            break;
-          case 'service':
-            distribution.service += category.btAmount;
-            break;
-          case 'timeManagement':
-            distribution.timeManagement += category.btAmount;
-            break;
-          case 'assistant':
-            distribution.assistant += category.btAmount;
-            break;
+        if (techIds.includes(category.id)) {
+          distribution.technical += category.btAmount;
+        } else if (category.id === 'service') {
+          distribution.service += category.btAmount;
+        } else if (category.id === 'timeManagement') {
+          distribution.timeManagement += category.btAmount;
+        } else if (category.id === 'assistant') {
+          distribution.assistant += category.btAmount;
         }
       });
       distribution.discarded += rating.btDiscarded || 0;
@@ -562,12 +529,16 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
             distribution.breakdown.color[details.color] += 1;
           } else if (category.id === 'perm' && details.perm) {
             distribution.breakdown.perm[details.perm] += 1;
+          } else if (category.id === 'technical') {
+            if (details.cut) distribution.breakdown.cut[details.cut] += 1;
+            if (details.color) distribution.breakdown.color[details.color] += 1;
+            if (details.perm) distribution.breakdown.perm[details.perm] += 1;
           }
         });
       }
     });
 
-    distribution.total = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage + distribution.service + distribution.timeManagement + distribution.assistant;
+    distribution.total = distribution.technical + distribution.service + distribution.timeManagement + distribution.assistant;
     
 
     return distribution;
@@ -585,87 +556,44 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     ));
     
     const distribution: PendingBTDistribution = {
-      cut: 0,
-      color: 0,
-      perm: 0,
-      straightening: 0,
-      extensions: 0,
-      massage: 0,
+      technical: 0,
       service: 0,
       timeManagement: 0,
       assistant: 0,
       total: 0,
     };
 
+    const pendingTechIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage', 'technical'];
+
     unverifiedConfirmedRatings.forEach(rating => {
       rating.categories.forEach(category => {
-        switch (category.id) {
-          case 'cut':
-            distribution.cut += category.btAmount;
-            break;
-          case 'color':
-            distribution.color += category.btAmount;
-            break;
-          case 'perm':
-            distribution.perm += category.btAmount;
-            break;
-          case 'straightening':
-            distribution.straightening += category.btAmount;
-            break;
-          case 'extensions':
-            distribution.extensions += category.btAmount;
-            break;
-          case 'massage':
-            distribution.massage += category.btAmount;
-            break;
-          case 'service':
-            distribution.service += category.btAmount;
-            break;
-          case 'timeManagement':
-            distribution.timeManagement += category.btAmount;
-            break;
-          case 'assistant':
-            distribution.assistant += category.btAmount;
-            break;
+        if (pendingTechIds.includes(category.id)) {
+          distribution.technical += category.btAmount;
+        } else if (category.id === 'service') {
+          distribution.service += category.btAmount;
+        } else if (category.id === 'timeManagement') {
+          distribution.timeManagement += category.btAmount;
+        } else if (category.id === 'assistant') {
+          distribution.assistant += category.btAmount;
         }
       });
     });
 
     hairdresserPendingBPs.forEach(bp => {
       bp.categories.forEach(category => {
-        switch (category.id) {
-          case 'cut':
-            distribution.cut += category.btAmount;
-            break;
-          case 'color':
-            distribution.color += category.btAmount;
-            break;
-          case 'perm':
-            distribution.perm += category.btAmount;
-            break;
-          case 'straightening':
-            distribution.straightening += category.btAmount;
-            break;
-          case 'extensions':
-            distribution.extensions += category.btAmount;
-            break;
-          case 'massage':
-            distribution.massage += category.btAmount;
-            break;
-          case 'service':
-            distribution.service += category.btAmount;
-            break;
-          case 'timeManagement':
-            distribution.timeManagement += category.btAmount;
-            break;
-          case 'assistant':
-            distribution.assistant += category.btAmount;
-            break;
+        if (pendingTechIds.includes(category.id)) {
+          distribution.technical += category.btAmount;
+        } else if (category.id === 'service') {
+          distribution.service += category.btAmount;
+        } else if (category.id === 'timeManagement') {
+          distribution.timeManagement += category.btAmount;
+        } else if (category.id === 'assistant') {
+          distribution.assistant += category.btAmount;
         }
       });
     });
 
-    distribution.total = distribution.cut + distribution.color + distribution.perm + distribution.straightening + distribution.extensions + distribution.massage + distribution.service + distribution.timeManagement + distribution.assistant;
+    distribution.total = distribution.technical + distribution.service + distribution.timeManagement + distribution.assistant;
 
     return distribution;
   }, [pendingBPs, ratings]);

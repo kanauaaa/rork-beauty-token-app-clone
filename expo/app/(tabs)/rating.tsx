@@ -2,19 +2,18 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal, Platform, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router } from 'expo-router';
-import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
-import { useRatings, Assistant } from '@/providers/RatingProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { useRatings, Assistant, ServiceDetails } from '@/providers/RatingProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
 import { useDisputes } from '@/providers/DisputeProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown, Info } from 'lucide-react-native';
+import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Info } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useMedicalRecords, MenuType } from '@/providers/MedicalRecordProvider';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
-import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 import { createCustomerQR, validateQRCode, serializeQRData, QRData } from '@/lib/qr-utils';
 import { getStorageInstance } from '@/lib/firebase';
@@ -69,18 +68,12 @@ function RatingContent() {
   const [savePhotoToRecord, setSavePhotoToRecord] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [technicalExpanded, setTechnicalExpanded] = useState(false);
   const [infoModal, setInfoModal] = useState<{ title: string; description: string } | null>(null);
   const [satisfiedServices, setSatisfiedServices] = useState<MenuType[]>([]);
   const [concernedServices, setConcernedServices] = useState<MenuType[]>([]);
 
   const categoryDescriptions: Record<string, string> = {
-    cut: 'カットの技術・仕上がりを評価してください。',
-    color: 'カラーの発色・ムラ・仕上がりを評価してください。',
-    perm: 'パーマの巻き具ご・持ちは・仕上がりを評価してください。',
-    straightening: '縮毛矯正のストレート感・ダメージ・仕上がりを評価してください。',
-    extensions: 'エクステのつけ心地・自然さ・仕上がりを評価してください。',
-    massage: 'マッサージの手技・気持ちよさ・癒やしを評価してください。',
+    technical: 'カット、カラー、パーマ等の技術・仕上がりを総合的に評価してください。',
     service: '接客態度、カウンセリング、提案力、説明の分かりやすさを評価してください。',
     timeManagement: '施術時間、待ち時間、施術の進行の評価を行なってください。',
     assistant: 'アシスタントによる施術や接客があれば満足度に応じて評価を行なってください。',
@@ -113,14 +106,9 @@ function RatingContent() {
   };
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
-    { id: 'cut', name: 'カット', amount: 0, icon: Scissors, color: '#FF69B4' },
-    { id: 'color', name: 'カラー', amount: 0, icon: Palette, color: '#FF8C42' },
-    { id: 'perm', name: 'パーマ', amount: 0, icon: Waves, color: '#9B59B6' },
-    { id: 'straightening', name: '縮毛矯正', amount: 0, icon: AlignJustify, color: '#3498DB' },
-    { id: 'extensions', name: 'エクステ', amount: 0, icon: Link, color: '#2ECC71' },
-    { id: 'massage', name: 'マッサージ', amount: 0, icon: Hand, color: '#F1C40F' },
+    { id: 'technical', name: '技術', amount: 0, icon: Scissors, color: '#FF69B4' },
     { id: 'service', name: '接客・カウンセリング', amount: 0, icon: Heart, color: '#FF69B4' },
-    { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#FF69B4' },
+    { id: 'timeManagement', name: '時間管理', amount: 0, icon: Clock, color: '#3498DB' },
     { id: 'assistant', name: 'アシスタント', amount: 0, icon: Users, color: '#87CEEB' },
     { id: 'discarded', name: 'BP破棄', amount: 0, icon: Trash2, color: '#E74C3C' },
   ]);
@@ -444,6 +432,23 @@ function RatingContent() {
 
       const validAssistants = assistants.filter(a => a.name.trim() !== '' || a.selected);
 
+      const customerGender = user?.gender;
+      const submittedDetails: ServiceDetails = {};
+      const techAlloc = btAllocations.find(c => c.id === 'technical');
+      if (techAlloc && techAlloc.amount > 0) {
+        if (customerGender === 'male' || customerGender === 'female') {
+          submittedDetails.cut = customerGender === 'male' ? 'mens' : 'ladies';
+          submittedDetails.perm = customerGender === 'male' ? 'mens' : 'ladies';
+        }
+        const latestHistory = getTreatmentHistory(user.id).find(h => h.menus.includes('color'));
+        const appType = latestHistory?.menuDetails.color?.applicationType;
+        if (appType === 'Wカラー') {
+          submittedDetails.color = 'wColor';
+        } else if (appType) {
+          submittedDetails.color = 'oneColor';
+        }
+      }
+
       const ratingData = {
         customerId: user.id,
         customerName: user.name,
@@ -456,6 +461,7 @@ function RatingContent() {
         btDiscarded: discarded?.amount || 0,
         comment: comment.trim(),
         photoUrl: photoUrl || undefined,
+        serviceDetails: submittedDetails,
         satisfiedServices,
         concernedServices,
       };
@@ -1378,106 +1384,55 @@ Alert.alert(
                   <Text style={styles.allocationsSectionSubtitle}>
                     各評価項目にBPを振り分けてください（1000円 = 1BP）
                   </Text>
-                  {(() => {
-                    const techIds = ['cut', 'color', 'perm', 'straightening', 'extensions', 'massage'];
-                    const techAllocations = btAllocations.filter(a => techIds.includes(a.id) && isTechCategoryAvailable(a.id, user?.availableServices));
-                    const otherItems = btAllocations.filter(a => !techIds.includes(a.id));
-                    const techTotal = techAllocations.reduce((s, a) => s + a.amount, 0);
-                    const techSkillItems: SkillItem[] = techAllocations.map(a => ({
-                      id: a.id,
-                      icon: a.icon,
-                      color: a.color,
-                      label: a.name,
-                      value: a.amount,
-                      infoText: categoryDescriptions[a.id],
-                    }));
-                    return (
-                      <>
-                        <TouchableOpacity
-                          style={[styles.allocationCard, { borderLeftWidth: 3, borderLeftColor: '#FF69B4' }]}
-                          onPress={() => setTechnicalExpanded(!technicalExpanded)}
-                          activeOpacity={0.7}
-                        >
+                  {btAllocations.map((allocation) => {
+                    if (allocation.id === 'discarded') {
+                      const IconComponent = allocation.icon;
+                      return (
+                        <View key={allocation.id} style={styles.allocationCard}>
                           <View style={styles.allocationHeader}>
-                            <ChevronDown
-                              size={20}
-                              color="#FF69B4"
-                              style={{ transform: [{ rotate: technicalExpanded ? '0deg' : '-90deg' }] }}
-                            />
-                            <Text style={[styles.allocationName, { color: '#FF69B4', fontWeight: 'bold' as const }]}>技術力</Text>
+                            <IconComponent size={24} color={allocation.color} />
+                            <Text style={styles.allocationName}>{allocation.name}</Text>
                           </View>
-                          <View style={styles.allocationAmountContainer}>
-                            <Text style={[styles.allocationAmount, { color: '#FF69B4' }]}>{techTotal}</Text>
-                            <Text style={styles.allocationUnit}>BP</Text>
+                          <View style={styles.allocationControls}>
+                            <TouchableOpacity
+                              style={styles.allocationButton}
+                              onPress={() => updateBTAllocation(allocation.id, -1)}
+                              disabled={allocation.amount === 0}
+                            >
+                              <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
+                            </TouchableOpacity>
+                            <View style={styles.allocationAmountContainer}>
+                              <Text style={styles.allocationAmount}>{allocation.amount}</Text>
+                              <Text style={styles.allocationUnit}>BP</Text>
+                            </View>
+                            <TouchableOpacity
+                              style={styles.allocationButton}
+                              onPress={() => updateBTAllocation(allocation.id, 1)}
+                              disabled={remainingBT <= 0}
+                            >
+                              <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
+                            </TouchableOpacity>
                           </View>
-                        </TouchableOpacity>
-
-                        {technicalExpanded && (
-                          <View style={{ marginLeft: 8, marginBottom: 12 }}>
-                            <TechnicalSkillChart
-                              items={techSkillItems}
-                              total={techTotal}
-                              interactive
-                              onAdjust={(id, delta) => updateBTAllocation(id, delta)}
-                              canIncrease={() => remainingBT > 0}
-                              canDecrease={(id) => techAllocations.find(a => a.id === id)?.amount !== 0}
-                              onInfoPress={handleInfoPress}
-                            />
-                          </View>
-                        )}
-
-                        {otherItems.map((allocation) => {
-                          if (allocation.id === 'discarded') {
-                            const IconComponent = allocation.icon;
-                            return (
-                              <View key={allocation.id} style={styles.allocationCard}>
-                                <View style={styles.allocationHeader}>
-                                  <IconComponent size={24} color={allocation.color} />
-                                  <Text style={styles.allocationName}>{allocation.name}</Text>
-                                </View>
-                                <View style={styles.allocationControls}>
-                                  <TouchableOpacity
-                                    style={styles.allocationButton}
-                                    onPress={() => updateBTAllocation(allocation.id, -1)}
-                                    disabled={allocation.amount === 0}
-                                  >
-                                    <Minus size={20} color={allocation.amount === 0 ? '#BDC3C7' : '#2C3E50'} />
-                                  </TouchableOpacity>
-                                  <View style={styles.allocationAmountContainer}>
-                                    <Text style={styles.allocationAmount}>{allocation.amount}</Text>
-                                    <Text style={styles.allocationUnit}>BP</Text>
-                                  </View>
-                                  <TouchableOpacity
-                                    style={styles.allocationButton}
-                                    onPress={() => updateBTAllocation(allocation.id, 1)}
-                                    disabled={remainingBT <= 0}
-                                  >
-                                    <Plus size={20} color={remainingBT <= 0 ? '#BDC3C7' : '#2C3E50'} />
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            );
-                          }
-                          return (
-                            <CategoryProgressBar
-                              key={allocation.id}
-                              icon={allocation.icon}
-                              color={allocation.color}
-                              label={allocation.name}
-                              value={allocation.amount}
-                              maxValue={totalBT}
-                              interactive
-                              onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
-                              canIncrease={remainingBT > 0}
-                              canDecrease={allocation.amount > 0}
-                              infoText={categoryDescriptions[allocation.id]}
-                              onInfoPress={handleInfoPress}
-                            />
-                          );
-                        })}
-                      </>
+                        </View>
+                      );
+                    }
+                    return (
+                      <CategoryProgressBar
+                        key={allocation.id}
+                        icon={allocation.icon}
+                        color={allocation.color}
+                        label={allocation.name}
+                        value={allocation.amount}
+                        maxValue={totalBT}
+                        interactive
+                        onAdjust={(delta) => updateBTAllocation(allocation.id, delta)}
+                        canIncrease={remainingBT > 0}
+                        canDecrease={allocation.amount > 0}
+                        infoText={categoryDescriptions[allocation.id]}
+                        onInfoPress={handleInfoPress}
+                      />
                     );
-                  })()}
+                  })}
                 </View>
 
                 <View style={styles.serviceFeedbackSection}>
