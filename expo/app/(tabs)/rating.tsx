@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router } from 'expo-router';
 import { useAuth, isTechCategoryAvailable } from '@/providers/AuthProvider';
-import { useRatings, Assistant, ServiceDetails } from '@/providers/RatingProvider';
+import { useRatings, Assistant } from '@/providers/RatingProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, CheckCircle, Zap, Heart, Clock, Users, Trash2, DollarSign, Plus, Minus, X, UserPlus, Camera, QrCode, Check, AlertCircle, History, Image as ImageIcon, Scissors, Palette, Waves, AlignJustify, Link, Hand, ChevronDown, Info } from 'lucide-react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
+import { useMedicalRecords, MenuType } from '@/providers/MedicalRecordProvider';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import TechnicalSkillChart, { SkillItem } from '@/components/TechnicalSkillChart';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
@@ -71,6 +71,8 @@ function RatingContent() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [technicalExpanded, setTechnicalExpanded] = useState(false);
   const [infoModal, setInfoModal] = useState<{ title: string; description: string } | null>(null);
+  const [satisfiedServices, setSatisfiedServices] = useState<MenuType[]>([]);
+  const [concernedServices, setConcernedServices] = useState<MenuType[]>([]);
 
   const categoryDescriptions: Record<string, string> = {
     cut: 'カットの技術・仕上がりを評価してください。',
@@ -86,6 +88,28 @@ function RatingContent() {
 
   const handleInfoPress = (label: string, infoText: string) => {
     setInfoModal({ title: label, description: infoText });
+  };
+
+  const serviceOptions: { id: MenuType; label: string }[] = [
+    { id: 'cut', label: 'カット' },
+    { id: 'color', label: 'カラー' },
+    { id: 'perm', label: 'パーマ' },
+    { id: 'straightening', label: '縮毛矯正' },
+    { id: 'treatment', label: 'トリートメント' },
+    { id: 'headspa', label: 'ヘッドスパ' },
+    { id: 'extension', label: 'エクステ' },
+  ];
+
+  const toggleSatisfied = (menu: MenuType) => {
+    setSatisfiedServices(prev =>
+      prev.includes(menu) ? prev.filter(m => m !== menu) : [...prev, menu]
+    );
+  };
+
+  const toggleConcerned = (menu: MenuType) => {
+    setConcernedServices(prev =>
+      prev.includes(menu) ? prev.filter(m => m !== menu) : [...prev, menu]
+    );
   };
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
@@ -420,27 +444,6 @@ function RatingContent() {
 
       const validAssistants = assistants.filter(a => a.name.trim() !== '' || a.selected);
 
-      const customerGender = user?.gender;
-      const submittedDetails: ServiceDetails = {};
-      const cutAlloc = btAllocations.find(c => c.id === 'cut');
-      const colorAlloc = btAllocations.find(c => c.id === 'color');
-      const permAlloc = btAllocations.find(c => c.id === 'perm');
-      if (cutAlloc && cutAlloc.amount > 0 && (customerGender === 'male' || customerGender === 'female')) {
-        submittedDetails.cut = customerGender === 'male' ? 'mens' : 'ladies';
-      }
-      if (colorAlloc && colorAlloc.amount > 0) {
-        const latestHistory = getTreatmentHistory(user.id).find(h => h.menus.includes('color'));
-        const appType = latestHistory?.menuDetails.color?.applicationType;
-        if (appType === 'Wカラー') {
-          submittedDetails.color = 'wColor';
-        } else if (appType) {
-          submittedDetails.color = 'oneColor';
-        }
-      }
-      if (permAlloc && permAlloc.amount > 0 && (customerGender === 'male' || customerGender === 'female')) {
-        submittedDetails.perm = customerGender === 'male' ? 'mens' : 'ladies';
-      }
-
       const ratingData = {
         customerId: user.id,
         customerName: user.name,
@@ -453,7 +456,8 @@ function RatingContent() {
         btDiscarded: discarded?.amount || 0,
         comment: comment.trim(),
         photoUrl: photoUrl || undefined,
-        serviceDetails: submittedDetails,
+        satisfiedServices,
+        concernedServices,
       };
 
 
@@ -491,6 +495,8 @@ function RatingContent() {
       setSelectedTaskId(null);
       setSavePhotoToRecord(false);
       setSelectedPhoto(null);
+      setSatisfiedServices([]);
+      setConcernedServices([]);
       resetAllocations();
     } catch (error: any) {
       console.error('[Rating] submitRating error:', error);
@@ -1474,6 +1480,62 @@ Alert.alert(
                   })()}
                 </View>
 
+                <View style={styles.serviceFeedbackSection}>
+                  <View style={styles.serviceFeedbackCard}>
+                    <View style={styles.serviceFeedbackHeader}>
+                      <Heart size={20} color="#4CAF50" />
+                      <Text style={styles.serviceFeedbackTitle}>特に満足した施術</Text>
+                    </View>
+                    <Text style={styles.serviceFeedbackSubtitle}>特に良かった施術を選択してください（任意）</Text>
+                    <View style={styles.serviceFeedbackGrid}>
+                      {serviceOptions.map((opt) => (
+                        <TouchableOpacity
+                          key={`sat_${opt.id}`}
+                          style={[
+                            styles.serviceFeedbackChip,
+                            satisfiedServices.includes(opt.id) && styles.serviceFeedbackChipActiveSat,
+                          ]}
+                          onPress={() => toggleSatisfied(opt.id)}
+                        >
+                          <Text style={[
+                            styles.serviceFeedbackChipText,
+                            satisfiedServices.includes(opt.id) && styles.serviceFeedbackChipTextActiveSat,
+                          ]}>
+                            {opt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <View style={styles.serviceFeedbackCard}>
+                    <View style={styles.serviceFeedbackHeader}>
+                      <AlertCircle size={20} color="#E74C3C" />
+                      <Text style={styles.serviceFeedbackTitle}>気になった施術</Text>
+                    </View>
+                    <Text style={styles.serviceFeedbackSubtitle}>気になる点があった施術を選択してください（任意）</Text>
+                    <View style={styles.serviceFeedbackGrid}>
+                      {serviceOptions.map((opt) => (
+                        <TouchableOpacity
+                          key={`con_${opt.id}`}
+                          style={[
+                            styles.serviceFeedbackChip,
+                            concernedServices.includes(opt.id) && styles.serviceFeedbackChipActiveCon,
+                          ]}
+                          onPress={() => toggleConcerned(opt.id)}
+                        >
+                          <Text style={[
+                            styles.serviceFeedbackChipText,
+                            concernedServices.includes(opt.id) && styles.serviceFeedbackChipTextActiveCon,
+                          ]}>
+                            {opt.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+
                 <Text style={styles.commentLabel}>コメント（任意）</Text>
                 <TextInput
                   style={styles.commentInput}
@@ -1738,6 +1800,18 @@ Alert.alert(
                           <Text style={[styles.historyCategoryBT, styles.discardedText]}>{rating.btDiscarded} BP</Text>
                         </View>
                       )}
+                    </View>
+                  )}
+                  {rating.satisfiedServices && rating.satisfiedServices.length > 0 && (
+                    <View style={styles.historyCommentSection}>
+                      <Text style={styles.historyCommentLabel}>特に満足した施術</Text>
+                      <Text style={styles.historyRatingComment}>{rating.satisfiedServices.map(s => { const labels: Record<string, string> = { cut: 'カット', color: 'カラー', perm: 'パーマ', straightening: '縮毛矯正', treatment: 'トリートメント', headspa: 'ヘッドスパ', extension: 'エクステ' }; return labels[s] || s; }).join('、')}</Text>
+                    </View>
+                  )}
+                  {rating.concernedServices && rating.concernedServices.length > 0 && (
+                    <View style={styles.historyCommentSection}>
+                      <Text style={styles.historyCommentLabel}>気になった施術</Text>
+                      <Text style={styles.historyRatingComment}>{rating.concernedServices.map(s => { const labels: Record<string, string> = { cut: 'カット', color: 'カラー', perm: 'パーマ', straightening: '縮毛矯正', treatment: 'トリートメント', headspa: 'ヘッドスパ', extension: 'エクステ' }; return labels[s] || s; }).join('、')}</Text>
                     </View>
                   )}
                   {rating.comment && (
@@ -2218,6 +2292,65 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
     marginBottom: 16,
     lineHeight: 18,
+  },
+  serviceFeedbackSection: {
+    marginBottom: 24,
+    gap: 16,
+  },
+  serviceFeedbackCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  serviceFeedbackHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    marginBottom: 4,
+  },
+  serviceFeedbackTitle: {
+    fontSize: 16,
+    fontWeight: 'bold' as const,
+    color: '#2C3E50',
+  },
+  serviceFeedbackSubtitle: {
+    fontSize: 13,
+    color: '#7F8C8D',
+    marginBottom: 12,
+  },
+  serviceFeedbackGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
+  },
+  serviceFeedbackChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    backgroundColor: 'white',
+  },
+  serviceFeedbackChipText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#7F8C8D',
+  },
+  serviceFeedbackChipActiveSat: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    borderColor: '#4CAF50',
+  },
+  serviceFeedbackChipTextActiveSat: {
+    color: '#4CAF50',
+  },
+  serviceFeedbackChipActiveCon: {
+    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    borderColor: '#E74C3C',
+  },
+  serviceFeedbackChipTextActiveCon: {
+    color: '#E74C3C',
   },
   allocationCard: {
     backgroundColor: '#F8F9FA',

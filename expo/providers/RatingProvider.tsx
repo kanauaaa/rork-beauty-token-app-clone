@@ -65,6 +65,8 @@ export interface Rating {
   photoUrl?: string;
   isCustomerVerified?: boolean;
   serviceDetails?: ServiceDetails;
+  satisfiedServices?: string[];
+  concernedServices?: string[];
 }
 
 export interface BTDistribution {
@@ -171,6 +173,8 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
           btReflected: data.btReflected ?? false,
           isCustomerVerified: data.isCustomerVerified ?? false,
           serviceDetails: data.serviceDetails || undefined,
+          satisfiedServices: data.satisfiedServices || [],
+          concernedServices: data.concernedServices || [],
         });
       });
       setRatings(ratingsData);
