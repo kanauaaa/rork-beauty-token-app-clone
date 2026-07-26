@@ -49,7 +49,6 @@ function RatingContent() {
   const insets = useSafeAreaInsets();
 
   const [paidAmount, setPaidAmount] = useState('');
-  const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showDistributeModal, setShowDistributeModal] = useState(false);
   const [showRemainderModal, setShowRemainderModal] = useState(false);
@@ -459,7 +458,6 @@ function RatingContent() {
         categories: categories,
         assistants: validAssistants,
         btDiscarded: discarded?.amount || 0,
-        comment: comment.trim(),
         photoUrl: photoUrl || undefined,
         serviceDetails: submittedDetails,
         satisfiedServices,
@@ -496,7 +494,6 @@ function RatingContent() {
       );
 
       setPaidAmount('');
-      setComment('');
       setAssistants([{ name: '', selected: false }]);
       setSelectedTaskId(null);
       setSavePhotoToRecord(false);
@@ -1491,17 +1488,6 @@ Alert.alert(
                   </View>
                 </View>
 
-                <Text style={styles.commentLabel}>コメント（任意）</Text>
-                <TextInput
-                  style={styles.commentInput}
-                  placeholder="サービスについてのコメントを入力してください"
-                  value={comment}
-                  onChangeText={setComment}
-                  multiline
-                  numberOfLines={4}
-                  placeholderTextColor="#95A5A6"
-                />
-
                 <View style={styles.photoSection}>
                   <TouchableOpacity
                     style={styles.photoCheckboxContainer}
@@ -1767,12 +1753,6 @@ Alert.alert(
                     <View style={styles.historyCommentSection}>
                       <Text style={styles.historyCommentLabel}>気になった施術</Text>
                       <Text style={styles.historyRatingComment}>{rating.concernedServices.map(s => { const labels: Record<string, string> = { cut: 'カット', color: 'カラー', perm: 'パーマ', straightening: '縮毛矯正', treatment: 'トリートメント', headspa: 'ヘッドスパ', extension: 'エクステ' }; return labels[s] || s; }).join('、')}</Text>
-                    </View>
-                  )}
-                  {rating.comment && (
-                    <View style={styles.historyCommentSection}>
-                      <Text style={styles.historyCommentLabel}>コメント</Text>
-                      <Text style={styles.historyRatingComment}>{rating.comment}</Text>
                     </View>
                   )}
                 </View>
@@ -2361,24 +2341,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600' as const,
     color: '#7F8C8D',
-  },
-  commentLabel: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#2C3E50',
-    marginBottom: 8,
-  },
-  commentInput: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#2C3E50',
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-    minHeight: 120,
-    textAlignVertical: 'top' as const,
-    marginBottom: 20,
   },
   submitButton: {
     flexDirection: 'row' as const,
