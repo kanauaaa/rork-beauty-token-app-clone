@@ -59,7 +59,7 @@ export interface Rating {
   categories: RatingCategory[];
   assistants: Assistant[];
   btDiscarded: number;
-  comment: string;
+  comment?: string;
   createdAt: string;
   btReflected?: boolean;
   photoUrl?: string;

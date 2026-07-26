@@ -370,6 +370,16 @@ function RatingContent() {
       return;
     }
 
+    if (satisfiedServices.length === 0) {
+      Alert.alert('必須項目', '特に満足した施術を少なくとも1つ選択してください');
+      return;
+    }
+
+    if (concernedServices.length === 0) {
+      Alert.alert('必須項目', '気になった施術を少なくとも1つ選択してください');
+      return;
+    }
+
     if (remainingBT !== 0) {
       Alert.alert(
         '確認',
@@ -1438,7 +1448,7 @@ Alert.alert(
                       <Heart size={20} color="#4CAF50" />
                       <Text style={styles.serviceFeedbackTitle}>特に満足した施術</Text>
                     </View>
-                    <Text style={styles.serviceFeedbackSubtitle}>特に良かった施術を選択してください（任意）</Text>
+                    <Text style={styles.serviceFeedbackSubtitle}>特に良かった施術を選択してください（必須）</Text>
                     <View style={styles.serviceFeedbackGrid}>
                       {serviceOptions.map((opt) => (
                         <TouchableOpacity
@@ -1465,7 +1475,7 @@ Alert.alert(
                       <AlertCircle size={20} color="#E74C3C" />
                       <Text style={styles.serviceFeedbackTitle}>気になった施術</Text>
                     </View>
-                    <Text style={styles.serviceFeedbackSubtitle}>気になる点があった施術を選択してください（任意）</Text>
+                    <Text style={styles.serviceFeedbackSubtitle}>気になる点があった施術を選択してください（必須）</Text>
                     <View style={styles.serviceFeedbackGrid}>
                       {serviceOptions.map((opt) => (
                         <TouchableOpacity
