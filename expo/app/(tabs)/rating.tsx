@@ -376,7 +376,7 @@ function RatingContent() {
     }
 
     if (concernedServices.length === 0) {
-      Alert.alert('必須項目', '気になった施術を少なくとも1つ選択してください');
+      Alert.alert('必須項目', '評価しない施術を少なくとも1つ選択してください');
       return;
     }
 
@@ -1473,9 +1473,9 @@ Alert.alert(
                   <View style={styles.serviceFeedbackCard}>
                     <View style={styles.serviceFeedbackHeader}>
                       <AlertCircle size={20} color="#E74C3C" />
-                      <Text style={styles.serviceFeedbackTitle}>気になった施術</Text>
+                      <Text style={styles.serviceFeedbackTitle}>評価しない施術</Text>
                     </View>
-                    <Text style={styles.serviceFeedbackSubtitle}>気になる点があった施術を選択してください（必須）</Text>
+                    <Text style={styles.serviceFeedbackSubtitle}>評価対象外の施術を選択してください（必須）</Text>
                     <View style={styles.serviceFeedbackGrid}>
                       {serviceOptions.map((opt) => (
                         <TouchableOpacity
@@ -1761,7 +1761,7 @@ Alert.alert(
                   )}
                   {rating.concernedServices && rating.concernedServices.length > 0 && (
                     <View style={styles.historyCommentSection}>
-                      <Text style={styles.historyCommentLabel}>気になった施術</Text>
+                      <Text style={styles.historyCommentLabel}>評価しない施術</Text>
                       <Text style={styles.historyRatingComment}>{rating.concernedServices.map(s => { const labels: Record<string, string> = { cut: 'カット', color: 'カラー', perm: 'パーマ', straightening: '縮毛矯正', treatment: 'トリートメント', headspa: 'ヘッドスパ', extension: 'エクステ' }; return labels[s] || s; }).join('、')}</Text>
                     </View>
                   )}
