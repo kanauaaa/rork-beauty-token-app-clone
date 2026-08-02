@@ -106,9 +106,9 @@ function RatingContent() {
 
   /**
    * 技術項目のBPを施術メニューごとに重み付け按分する（内部計算・画面非表示）
-   * - 特に満足した施術: 重み 1.5
+   * - 特に満足した施術: 重み 2
    * - 評価しない施術: 重み 0
-   * - 通常: 重み 1.0
+   * - 通常: 重み 1
    * 小数第2位で丸め、最後の項目で端数を調整して余りを出さない
    */
   const calculateTechnicalBreakdown = (
@@ -121,8 +121,8 @@ function RatingContent() {
 
     const weights: number[] = menus.map(menu => {
       if (concerned.includes(menu)) return 0;
-      if (satisfied.includes(menu)) return 1.5;
-      return 1.0;
+      if (satisfied.includes(menu)) return 2;
+      return 1;
     });
 
     const totalWeight = weights.reduce((s, w) => s + w, 0);
