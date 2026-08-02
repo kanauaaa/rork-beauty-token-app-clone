@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRatings, Assistant, ServiceDetails } from '@/providers/RatingProvider';
+import { useRatings, Assistant, ServiceDetails, TechnicalBreakdown } from '@/providers/RatingProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useAssistantBT } from '@/providers/AssistantBTProvider';
 import { useVisitSessionPolling } from '@/providers/VisitSessionPollingProvider';
@@ -102,6 +102,49 @@ function RatingContent() {
     setConcernedServices(prev =>
       prev.includes(menu) ? prev.filter(m => m !== menu) : [...prev, menu]
     );
+  };
+
+  /**
+   * 技術項目のBPを施術メニューごとに重み付け按分する（内部計算・画面非表示）
+   * - 特に満足した施術: 重み 1.5
+   * - 評価しない施術: 重み 0
+   * - 通常: 重み 1.0
+   * 小数第2位で丸め、最後の項目で端数を調整して余りを出さない
+   */
+  const calculateTechnicalBreakdown = (
+    technicalBP: number,
+    menus: MenuType[],
+    satisfied: MenuType[],
+    concerned: MenuType[],
+  ): TechnicalBreakdown => {
+    if (technicalBP <= 0 || menus.length === 0) return {};
+
+    const weights: number[] = menus.map(menu => {
+      if (concerned.includes(menu)) return 0;
+      if (satisfied.includes(menu)) return 1.5;
+      return 1.0;
+    });
+
+    const totalWeight = weights.reduce((s, w) => s + w, 0);
+    if (totalWeight === 0) return {};
+
+    const result: TechnicalBreakdown = {};
+    let allocated = 0;
+
+    for (let i = 0; i < menus.length; i++) {
+      const menu = menus[i];
+      if (i === menus.length - 1) {
+        const remainder = Math.round((technicalBP - allocated) * 100) / 100;
+        result[menu] = remainder;
+      } else {
+        const raw = technicalBP * (weights[i] / totalWeight);
+        const rounded = Math.round(raw * 100) / 100;
+        result[menu] = rounded;
+        allocated += rounded;
+      }
+    }
+
+    return result;
   };
   
   const [btAllocations, setBtAllocations] = useState<BTAllocation[]>([
@@ -472,6 +515,15 @@ function RatingContent() {
         serviceDetails: submittedDetails,
         satisfiedServices,
         concernedServices,
+        technicalBreakdown: techAlloc && techAlloc.amount > 0
+          ? calculateTechnicalBreakdown(
+              techAlloc.amount,
+              (getTreatmentHistory(user.id)[0]?.menus ??
+                [...new Set([...satisfiedServices, ...concernedServices])]) as MenuType[],
+              satisfiedServices,
+              concernedServices,
+            )
+          : undefined,
       };
 
 

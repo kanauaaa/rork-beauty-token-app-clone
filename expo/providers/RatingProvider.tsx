@@ -42,6 +42,9 @@ export interface ServiceDetails {
   perm?: PermDetail;
 }
 
+/** 技術項目のBPを施術メニューごとに按分した内訳（小数第2位、画面非表示） */
+export type TechnicalBreakdown = Record<string, number>;
+
 export interface CategoryBreakdownCounts {
   cut: { mens: number; ladies: number };
   color: { oneColor: number; wColor: number };
@@ -67,6 +70,7 @@ export interface Rating {
   serviceDetails?: ServiceDetails;
   satisfiedServices?: string[];
   concernedServices?: string[];
+  technicalBreakdown?: TechnicalBreakdown;
 }
 
 export interface BTDistribution {
@@ -165,6 +169,7 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
           serviceDetails: data.serviceDetails || undefined,
           satisfiedServices: data.satisfiedServices || [],
           concernedServices: data.concernedServices || [],
+          technicalBreakdown: data.technicalBreakdown || undefined,
         });
       });
       setRatings(ratingsData);
