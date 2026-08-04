@@ -3,10 +3,13 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatLi
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth, User } from '@/providers/AuthProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search as SearchIcon, MapPin, Star, Navigation, Award, Map as MapIcon, Calendar, Clock, FileText, CheckCircle, X, Bell } from 'lucide-react-native';
+import { Search as SearchIcon, MapPin, Star, Navigation, Award, Map as MapIcon, Calendar, Clock, FileText, CheckCircle, X, Bell, Scissors } from 'lucide-react-native';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import { WebView as ExpoWebView } from 'react-native-webview';
 import { useFavorites } from '@/providers/FavoriteProvider';
+import { useRatings } from '@/providers/RatingProvider';
+import CategoryProgressBar from '@/components/CategoryProgressBar';
+import TechnicalBreakdownDisplay from '@/components/TechnicalBreakdownDisplay';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { getDb } from '@/lib/firebase';
@@ -50,6 +53,7 @@ interface Hairdresser {
 export default function SearchScreen() {
   const { user } = useAuth();
   const { isFavorite, addFavorite, removeFavorite, scoutRequests, getScoutRequestsForCustomer, acceptScoutRequest, rejectScoutRequest } = useFavorites();
+  const { getBTDistribution, getTechnicalBreakdown } = useRatings();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -402,6 +406,24 @@ export default function SearchScreen() {
               <Text style={styles.btValue}>{item.btBalance} BT</Text>
             </View>
           </View>
+
+          {(() => {
+            const dist = getBTDistribution(item.id);
+            const techBreakdown = getTechnicalBreakdown(item.id);
+            if (dist.technical <= 0) return null;
+            return (
+              <View style={styles.infoRow}>
+                <Scissors size={16} color="#FF69B4" />
+                <View style={styles.infoContent}>
+                  <Text style={styles.btLabel}>技術BP内訳</Text>
+                  <TechnicalBreakdownDisplay
+                    breakdown={techBreakdown}
+                    totalTechnicalBP={dist.technical}
+                  />
+                </View>
+              </View>
+            );
+          })()}
 
           <View style={styles.specialtiesSection}>
             <Text style={styles.specialtiesLabel}>得意な技術</Text>

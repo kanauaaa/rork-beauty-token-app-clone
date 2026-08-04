@@ -117,6 +117,7 @@ interface RatingState {
   getRatingsByCustomer: (customerId: string) => Rating[];
   getBTDistribution: (hairdresserId: string) => BTDistribution;
   getPendingBTDistribution: (hairdresserId: string) => PendingBTDistribution;
+  getTechnicalBreakdown: (hairdresserId: string) => TechnicalBreakdown;
   calculateBT: (amount: number) => number;
   deleteRating: (ratingId: string) => Promise<void>;
   deleteMultipleRatings: (ratingIds: string[]) => Promise<void>;
@@ -603,6 +604,24 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     return distribution;
   }, [pendingBPs, ratings]);
 
+  const getTechnicalBreakdown = useCallback((hairdresserId: string): TechnicalBreakdown => {
+    const hairdresserRatings = ratings.filter(rating => {
+      const isCorrectHairdresser = rating.hairdresserId === hairdresserId;
+      const isBTReflected = rating.btReflected === true;
+      const isVerified = rating.isCustomerVerified === true;
+      return isCorrectHairdresser && isBTReflected && isVerified;
+    });
+
+    const result: TechnicalBreakdown = {};
+    hairdresserRatings.forEach(rating => {
+      if (!rating.technicalBreakdown) return;
+      for (const [menu, bp] of Object.entries(rating.technicalBreakdown)) {
+        result[menu] = Math.round(((result[menu] || 0) + bp) * 100) / 100;
+      }
+    });
+    return result;
+  }, [ratings]);
+
   const deleteRating = useCallback(async (ratingId: string) => {
     
     const db = getDb();
@@ -645,9 +664,10 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     getRatingsByCustomer,
     getBTDistribution,
     getPendingBTDistribution,
+    getTechnicalBreakdown,
     calculateBT,
     deleteRating,
     deleteMultipleRatings,
     deleteAllRatingsByCustomer,
-  }), [ratings, pendingBPs, isLoading, addRating, getRatingsByHairdresser, getRatingsByCustomer, getBTDistribution, getPendingBTDistribution, calculateBT, deleteRating, deleteMultipleRatings, deleteAllRatingsByCustomer]);
+  }), [ratings, pendingBPs, isLoading, addRating, getRatingsByHairdresser, getRatingsByCustomer, getBTDistribution, getPendingBTDistribution, getTechnicalBreakdown, calculateBT, deleteRating, deleteMultipleRatings, deleteAllRatingsByCustomer]);
 });

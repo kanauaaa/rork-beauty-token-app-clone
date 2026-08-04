@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 import QRCodeComponent from '@/components/QRCode';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
+import TechnicalBreakdownDisplay from '@/components/TechnicalBreakdownDisplay';
 
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
 import { useReferral } from '@/providers/ReferralProvider';
@@ -37,7 +38,7 @@ function HomeContent() {
   const { addRecord, getTreatmentHistory } = useMedicalRecords();
   const { referralData } = useReferral();
   useFavorites();
-  const { getBTDistribution, getPendingBTDistribution, getRatingsByCustomer } = useRatings();
+  const { getBTDistribution, getPendingBTDistribution, getTechnicalBreakdown, getRatingsByCustomer } = useRatings();
   useAssistantBT();
   const { mismatchSessions } = useVisitSessionPolling();
   const { disputes, createDispute, updateDispute, getDisputesByCustomer } = useDisputes();
@@ -642,6 +643,11 @@ function HomeContent() {
                         value={btDistribution.technical}
                         pending={pendingBTDistribution.technical}
                         maxValue={grandTotal}
+                      />
+
+                      <TechnicalBreakdownDisplay
+                        breakdown={getTechnicalBreakdown(user.id)}
+                        totalTechnicalBP={btDistribution.technical}
                       />
 
                       <CategoryProgressBar

@@ -12,6 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { createCustomerQR, createHairdresserQR, createHairdresserReferralQR, getQRCodeInfo, serializeQRData, validateQRCode } from '@/lib/qr-utils';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
+import TechnicalBreakdownDisplay from '@/components/TechnicalBreakdownDisplay';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
 import { useWeb3 } from '@/providers/Web3Provider';
 import { useBPEarned, BP_MILESTONES } from '@/providers/BPEarnedProvider';
@@ -22,7 +23,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout, updateProfile, generateWalletForHairdresser } = useAuth();
   const { createRatingTask } = useRatingTasks();
-  const { getBTDistribution, getRatingsByCustomer } = useRatings();
+  const { getBTDistribution, getTechnicalBreakdown, getRatingsByCustomer } = useRatings();
   const { triggerPreview, triggerNormalPreview } = useBPEarned();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -588,6 +589,11 @@ export default function ProfileScreen() {
                         label="技術"
                         value={distribution.technical}
                         maxValue={distribution.total}
+                      />
+
+                      <TechnicalBreakdownDisplay
+                        breakdown={getTechnicalBreakdown(user.id)}
+                        totalTechnicalBP={distribution.technical}
                       />
 
                       <CategoryProgressBar
