@@ -62,11 +62,10 @@ export default function TechnicalBreakdownDisplay({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    marginBottom: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255, 105, 180, 0.05)',
+    marginTop: 12,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255, 105, 180, 0.06)',
     borderRadius: 10,
   } as const,
   title: {
@@ -79,12 +78,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'flex-end' as const,
     justifyContent: 'space-evenly' as const,
-    height: 160,
+    height: 140,
   },
   barColumn: {
     flex: 1,
     alignItems: 'center' as const,
-    maxWidth: 60,
+    maxWidth: 52,
   },
   bpText: {
     fontSize: 11,

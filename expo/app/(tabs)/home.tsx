@@ -644,13 +644,13 @@ function HomeContent() {
                         value={btDistribution.technical}
                         pending={pendingBTDistribution.technical}
                         maxValue={grandTotal}
-                      />
-
-                      <TechnicalBreakdownDisplay
-                        breakdown={getTechnicalBreakdown(user.id)}
-                        totalTechnicalBP={btDistribution.technical}
-                        availableMenus={serviceIdsToMenuTypes(user.availableServices)}
-                      />
+                      >
+                        <TechnicalBreakdownDisplay
+                          breakdown={getTechnicalBreakdown(user.id)}
+                          totalTechnicalBP={btDistribution.technical}
+                          availableMenus={serviceIdsToMenuTypes(user.availableServices)}
+                        />
+                      </CategoryProgressBar>
 
                       <CategoryProgressBar
                         icon={Heart}

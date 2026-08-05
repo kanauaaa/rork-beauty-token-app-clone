@@ -590,13 +590,13 @@ export default function ProfileScreen() {
                         label="技術"
                         value={distribution.technical}
                         maxValue={distribution.total}
-                      />
-
-                      <TechnicalBreakdownDisplay
-                        breakdown={getTechnicalBreakdown(user.id)}
-                        totalTechnicalBP={distribution.technical}
-                        availableMenus={serviceIdsToMenuTypes(user.availableServices)}
-                      />
+                      >
+                        <TechnicalBreakdownDisplay
+                          breakdown={getTechnicalBreakdown(user.id)}
+                          totalTechnicalBP={distribution.technical}
+                          availableMenus={serviceIdsToMenuTypes(user.availableServices)}
+                        />
+                      </CategoryProgressBar>
 
                       <CategoryProgressBar
                         icon={Heart}

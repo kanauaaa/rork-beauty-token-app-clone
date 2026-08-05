@@ -15,6 +15,8 @@ interface CategoryProgressBarProps {
   canDecrease?: boolean;
   infoText?: string;
   onInfoPress?: (label: string, infoText: string) => void;
+  /** カード内のプログレスバーの下に表示する追加コンテンツ（技術メニュー別内訳など） */
+  children?: React.ReactNode;
 }
 
 export default function CategoryProgressBar({
@@ -30,6 +32,7 @@ export default function CategoryProgressBar({
   canDecrease,
   infoText,
   onInfoPress,
+  children,
 }: CategoryProgressBarProps) {
   const displayValue = value + (pending || 0);
   const ratio = maxValue > 0 ? value / maxValue : 0;
@@ -79,6 +82,7 @@ export default function CategoryProgressBar({
         <View style={[styles.fill, { width: `${clampedRatio * 100}%`, backgroundColor: color }]} />
       </View>
       {pending ? <Text style={[styles.pendingText, { color }]}>+{pending}（仮）</Text> : null}
+      {children}
     </View>
   );
 }
