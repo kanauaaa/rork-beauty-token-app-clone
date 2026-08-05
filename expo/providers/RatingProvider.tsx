@@ -139,14 +139,8 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
     const db = getDb();
     const ratingsRef = collection(db, 'ratings');
 
-    let ratingsQuery;
-    if (user.role === 'hairdresser') {
-      ratingsQuery = query(ratingsRef, where('hairdresserId', '==', user.id), orderBy('createdAt', 'desc'));
-    } else if (user.role === 'customer') {
-      ratingsQuery = query(ratingsRef, where('customerId', '==', user.id), orderBy('createdAt', 'desc'));
-    } else {
-      ratingsQuery = query(ratingsRef, orderBy('createdAt', 'desc'));
-    }
+    // Load all ratings so customers can view any hairdresser's BP breakdown
+    const ratingsQuery = query(ratingsRef, orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(ratingsQuery, (snapshot) => {
       const ratingsData: Rating[] = [];

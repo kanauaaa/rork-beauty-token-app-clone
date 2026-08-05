@@ -14,6 +14,7 @@ import CategoryProgressBar from '@/components/CategoryProgressBar';
 import TechnicalBreakdownDisplay from '@/components/TechnicalBreakdownDisplay';
 
 import { useMedicalRecords } from '@/providers/MedicalRecordProvider';
+import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
 import { useReferral } from '@/providers/ReferralProvider';
 import { useFavorites } from '@/providers/FavoriteProvider';
 import { useRatingTasks } from '@/providers/RatingTaskProvider';
@@ -648,6 +649,7 @@ function HomeContent() {
                       <TechnicalBreakdownDisplay
                         breakdown={getTechnicalBreakdown(user.id)}
                         totalTechnicalBP={btDistribution.technical}
+                        availableMenus={serviceIdsToMenuTypes(user.availableServices)}
                       />
 
                       <CategoryProgressBar

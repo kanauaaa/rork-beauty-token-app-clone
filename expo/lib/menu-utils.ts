@@ -1,4 +1,5 @@
 import { MenuType } from '@/providers/MedicalRecordProvider';
+import { ServiceId } from '@/providers/AuthProvider';
 
 export const getMenuLabel = (menu: MenuType): string => {
   const labels: Record<MenuType, string> = {
@@ -24,4 +25,28 @@ export const getMenuColor = (menu: MenuType): string => {
     extension: '#FFD700'
   };
   return colors[menu];
+};
+
+/**
+ * 美容師の登録時availableServices（ServiceId[]）をMenuType[]に変換する
+ * oneColor/wColor → color、hairSetはMenuTypeに該当なし（除外）
+ */
+export const serviceIdsToMenuTypes = (services: ServiceId[] | undefined): MenuType[] => {
+  if (!services || services.length === 0) return [];
+  const mapping: Partial<Record<ServiceId, MenuType>> = {
+    cut: 'cut',
+    oneColor: 'color',
+    wColor: 'color',
+    perm: 'perm',
+    straightening: 'straightening',
+    treatment: 'treatment',
+    headSpa: 'headspa',
+    extensions: 'extension',
+  };
+  const result = new Set<MenuType>();
+  services.forEach(s => {
+    const menu = mapping[s];
+    if (menu) result.add(menu);
+  });
+  return Array.from(result);
 };

@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRatings } from '@/providers/RatingProvider';
+import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
 import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Play, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
@@ -594,6 +595,7 @@ export default function ProfileScreen() {
                       <TechnicalBreakdownDisplay
                         breakdown={getTechnicalBreakdown(user.id)}
                         totalTechnicalBP={distribution.technical}
+                        availableMenus={serviceIdsToMenuTypes(user.availableServices)}
                       />
 
                       <CategoryProgressBar

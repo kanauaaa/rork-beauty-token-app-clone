@@ -16,8 +16,11 @@ import { useMedicalRecords, MenuType } from '@/providers/MedicalRecordProvider';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
 import CategoryProgressBar from '@/components/CategoryProgressBar';
 import { createCustomerQR, validateQRCode, serializeQRData, QRData } from '@/lib/qr-utils';
-import { getStorageInstance } from '@/lib/firebase';
+import { getStorageInstance, getDb } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, getDoc } from 'firebase/firestore';
+import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
+import { ServiceId } from '@/providers/AuthProvider';
 
 
 
@@ -501,6 +504,24 @@ function RatingContent() {
         }
       }
 
+      // 美容師の登録時availableServicesを取得してMenuTypeに変換
+      let hairdresserMenus: MenuType[] = [];
+      try {
+        const db = getDb();
+        const hairdresserDoc = await getDoc(doc(db, 'users', selectedTask.hairdresserId));
+        if (hairdresserDoc.exists()) {
+          const services = hairdresserDoc.data().availableServices as ServiceId[] | undefined;
+          hairdresserMenus = serviceIdsToMenuTypes(services);
+        }
+      } catch {
+        // 取得失敗時は空配列のまま
+      }
+      // availableServicesが取れなければカルテ履歴→satisfied+concernedの順にフォールバック
+      const breakdownMenus: MenuType[] = hairdresserMenus.length > 0
+        ? hairdresserMenus
+        : (getTreatmentHistory(user.id)[0]?.menus ??
+            [...new Set([...satisfiedServices, ...concernedServices])]) as MenuType[];
+
       const ratingData = {
         customerId: user.id,
         customerName: user.name,
@@ -518,8 +539,7 @@ function RatingContent() {
         technicalBreakdown: techAlloc && techAlloc.amount > 0
           ? calculateTechnicalBreakdown(
               techAlloc.amount,
-              (getTreatmentHistory(user.id)[0]?.menus ??
-                [...new Set([...satisfiedServices, ...concernedServices])]) as MenuType[],
+              breakdownMenus,
               satisfiedServices,
               concernedServices,
             )

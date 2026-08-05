@@ -14,6 +14,9 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { getDb } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { ServiceId } from '@/providers/AuthProvider';
+import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
+import { MenuType } from '@/providers/MedicalRecordProvider';
 
 
 const MAP_HEIGHT = 300;
@@ -48,6 +51,7 @@ interface Hairdresser {
   specialties: string[];
   rating: number;
   totalReviews: number;
+  availableMenus: MenuType[];
 }
 
 export default function SearchScreen() {
@@ -90,6 +94,7 @@ export default function SearchScreen() {
             specialties: data.recommendations || [],
             rating: 4.5,
             totalReviews: 0,
+            availableMenus: serviceIdsToMenuTypes(data.availableServices as ServiceId[] | undefined),
           });
         } else {
 
@@ -419,6 +424,7 @@ export default function SearchScreen() {
                   <TechnicalBreakdownDisplay
                     breakdown={techBreakdown}
                     totalTechnicalBP={dist.technical}
+                    availableMenus={item.availableMenus}
                   />
                 </View>
               </View>
