@@ -27,11 +27,18 @@ export default function TechnicalBreakdownDisplay({
     ? MENU_ORDER.filter(m => availableMenus.includes(m))
     : MENU_ORDER;
 
-  const entries = menusToShow
+  // 登録メニュー外の既存データも漏れなく表示（breakdownに値があるメニューは追加）
+  const menusWithData = MENU_ORDER.filter(m => (breakdown[m] ?? 0) > 0 && !menusToShow.includes(m));
+
+  const entries = [...menusToShow, ...menusWithData]
     .map(menu => ({ menu, bp: breakdown[menu] ?? 0 }))
     .filter(e => e.bp > 0);
 
-  if (entries.length === 0 || totalTechnicalBP <= 0) return null;
+  if (entries.length === 0) return null;
+
+  // 割合の分母は内訳合計を優先（仮反映分を含むためtotalTechnicalBPと一致しない場合がある）
+  const entriesSum = entries.reduce((s, e) => s + e.bp, 0);
+  const percentBase = entriesSum > 0 ? entriesSum : totalTechnicalBP;
 
   const maxBP = Math.max(...entries.map(e => e.bp), 1);
   const chartHeight = 100;
@@ -43,7 +50,7 @@ export default function TechnicalBreakdownDisplay({
         {entries.map(({ menu, bp }) => {
           const color = getMenuColor(menu);
           const barHeight = Math.max((bp / maxBP) * chartHeight, 6);
-          const percent = totalTechnicalBP > 0 ? Math.round((bp / totalTechnicalBP) * 1000) / 10 : 0;
+          const percent = percentBase > 0 ? Math.round((bp / percentBase) * 1000) / 10 : 0;
           return (
             <View key={menu} style={styles.barColumn}>
               <Text style={[styles.bpText, { color }]}>{bp.toFixed(2)}</Text>

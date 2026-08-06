@@ -599,18 +599,38 @@ export const [RatingProvider, useRatings] = createContextHook((): RatingState =>
   }, [pendingBPs, ratings]);
 
   const getTechnicalBreakdown = useCallback((hairdresserId: string): TechnicalBreakdown => {
-    const hairdresserRatings = ratings.filter(rating => {
-      const isCorrectHairdresser = rating.hairdresserId === hairdresserId;
-      const isBTReflected = rating.btReflected === true;
-      const isVerified = rating.isCustomerVerified === true;
-      return isCorrectHairdresser && isBTReflected && isVerified;
-    });
+    // btReflectedのみ必須（本人確認待ちの仮反映分も含めて内訳を可視化）
+    const hairdresserRatings = ratings.filter(rating => (
+      rating.hairdresserId === hairdresserId && rating.btReflected === true
+    ));
+
+    // 旧システム（6項目評価）のcategory id → メニュー名の対応（既存データ用フォールバック）
+    const legacyTechIdToMenu: Record<string, string> = {
+      cut: 'cut',
+      color: 'color',
+      perm: 'perm',
+      straightening: 'straightening',
+      extensions: 'extension',
+      massage: 'headspa',
+    };
 
     const result: TechnicalBreakdown = {};
+    const add = (menu: string, bp: number) => {
+      result[menu] = Math.round(((result[menu] || 0) + bp) * 100) / 100;
+    };
+
     hairdresserRatings.forEach(rating => {
-      if (!rating.technicalBreakdown) return;
-      for (const [menu, bp] of Object.entries(rating.technicalBreakdown)) {
-        result[menu] = Math.round(((result[menu] || 0) + bp) * 100) / 100;
+      if (rating.technicalBreakdown && Object.keys(rating.technicalBreakdown).length > 0) {
+        // 新システム: 保存済みの按分データを使用
+        for (const [menu, bp] of Object.entries(rating.technicalBreakdown)) {
+          if (bp > 0) add(menu, bp);
+        }
+      } else {
+        // 旧システム: 旧6項目のcategoriesからメニュー別BPを復元（データは残っている）
+        rating.categories.forEach(category => {
+          const menu = legacyTechIdToMenu[category.id];
+          if (menu && category.btAmount > 0) add(menu, category.btAmount);
+        });
       }
     });
     return result;
