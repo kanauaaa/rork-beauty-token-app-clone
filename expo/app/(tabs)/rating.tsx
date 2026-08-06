@@ -522,23 +522,28 @@ function RatingContent() {
         categories: categories,
         assistants: validAssistants,
         btDiscarded: discarded?.amount || 0,
-        photoUrl: photoUrl || undefined,
         serviceDetails: submittedDetails,
         satisfiedServices,
         concernedServices,
-        technicalBreakdown: techAlloc && techAlloc.amount > 0
-          ? calculateTechnicalBreakdown(
-              techAlloc.amount,
-              breakdownMenus,
-              satisfiedServices,
-              concernedServices,
-            )
-          : undefined,
+        ...(photoUrl ? { photoUrl } : {}),
+        ...(techAlloc && techAlloc.amount > 0
+          ? {
+              technicalBreakdown: calculateTechnicalBreakdown(
+                techAlloc.amount,
+                breakdownMenus,
+                satisfiedServices,
+                concernedServices,
+              ),
+            }
+          : {}),
       };
 
+      // Remove undefined values — Firestore rejects them
+      const cleanRatingData = Object.fromEntries(
+        Object.entries(ratingData).filter(([, v]) => v !== undefined)
+      ) as typeof ratingData;
 
-
-      await addRating(ratingData);
+      await addRating(cleanRatingData);
 
       await completeRatingTask(selectedTask.id);
 
