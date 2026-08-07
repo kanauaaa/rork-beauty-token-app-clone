@@ -17,6 +17,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { ServiceId } from '@/providers/AuthProvider';
 import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
 import { MenuType } from '@/providers/MedicalRecordProvider';
+import { MATCHING_FEATURE_VISIBLE } from '@/constants/feature-flags';
 
 
 const MAP_HEIGHT = 300;
@@ -286,7 +287,8 @@ export default function SearchScreen() {
     setMapKey(prev => prev + 1);
   };
 
-  const customerScoutRequests = user && user.role === 'customer' ? getScoutRequestsForCustomer(user.id) : [];
+  // 運営側フラグが非表示の間はスカウト申請UIを出さない（データ・ロジックは維持）
+  const customerScoutRequests = MATCHING_FEATURE_VISIBLE && user && user.role === 'customer' ? getScoutRequestsForCustomer(user.id) : [];
 
   const handleAcceptScoutRequest = async (requestId: string, hairdresserName: string) => {
     try {
@@ -461,7 +463,7 @@ export default function SearchScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ height: 100 }} />
-        {user?.role === 'customer' && customerScoutRequests.length > 0 && (
+        {MATCHING_FEATURE_VISIBLE && user?.role === 'customer' && customerScoutRequests.length > 0 && (
           <View style={styles.notificationButtonWrapper}>
             <TouchableOpacity
               style={styles.scoutNotificationButton}
@@ -616,7 +618,7 @@ export default function SearchScreen() {
       </ScrollView>
 
       <Modal
-        visible={showScoutRequestsModal}
+        visible={MATCHING_FEATURE_VISIBLE && showScoutRequestsModal}
         transparent={false}
         animationType="slide"
         onRequestClose={() => setShowScoutRequestsModal(false)}

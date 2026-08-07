@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Home, Star, User, FileText, Users, Search, Award } from 'lucide-react-native';
 import { useAuth } from '@/providers/AuthProvider';
 import WalletBalanceHeader from '@/components/WalletBalanceHeader';
+import { MATCHING_FEATURE_VISIBLE } from '@/constants/feature-flags';
 
 export default function TabLayout() {
 
@@ -91,11 +92,18 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="matching"
-        options={{
-          title: 'マッチング',
-          headerShown: false,
-          tabBarIcon: ({ color }) => <Users size={24} color={color} />,
-        }}
+        options={
+          MATCHING_FEATURE_VISIBLE
+            ? {
+                title: 'マッチング',
+                headerShown: false,
+                tabBarIcon: ({ color }) => <Users size={24} color={color} />,
+              }
+            : {
+                // 運営側フラグで非表示中（機能・データは維持）
+                href: null,
+              }
+        }
       />
 
       {user.role === 'hairdresser' && (
