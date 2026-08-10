@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
 import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan } from 'lucide-react-native';
+import IdentityVerificationButton from '@/components/IdentityVerificationButton';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -658,6 +659,8 @@ export default function RegisterScreen() {
                   </View>
                 </React.Fragment>
               )}
+
+              <IdentityVerificationButton variant="compact" />
 
               <TouchableOpacity
                 style={[styles.registerButton, isLoading && styles.disabledButton]}

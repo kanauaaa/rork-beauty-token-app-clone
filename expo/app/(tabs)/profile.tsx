@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useRatings } from '@/providers/RatingProvider';
 import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
 import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Play, Lock } from 'lucide-react-native';
+import IdentityVerificationButton from '@/components/IdentityVerificationButton';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -426,6 +427,8 @@ export default function ProfileScreen() {
               <Text style={styles.introText}>{user.selfIntroduction}</Text>
             </View>
           )}
+
+          <IdentityVerificationButton isVerified={user.isVerified} />
         </View>
 
         {user.role === 'customer' && (
@@ -951,6 +954,11 @@ export default function ProfileScreen() {
                   thumbColor={settings.locationServices ? '#FFFFFF' : '#F4F3F4'}
                 />
               </View>
+            </View>
+
+            <View style={styles.settingSection}>
+              <Text style={styles.sectionTitle}>本人確認</Text>
+              <IdentityVerificationButton isVerified={user.isVerified} variant="compact" />
             </View>
 
             <View style={styles.settingSection}>
