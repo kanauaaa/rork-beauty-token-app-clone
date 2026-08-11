@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { Users } from 'lucide-react-native';
+import LineLoginButton from '@/components/LineLoginButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function WelcomeScreen() {
@@ -78,6 +79,13 @@ export default function WelcomeScreen() {
             <Text style={styles.registerButtonText}>新規登録</Text>
           </TouchableOpacity>
 
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>または</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <LineLoginButton />
         </View>
       </View>
     </LinearGradient>
@@ -171,5 +179,20 @@ const styles = StyleSheet.create({
     color: '#FF69B4',
     fontSize: 18,
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginHorizontal: 12,
   },
 });

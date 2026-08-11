@@ -85,6 +85,11 @@ export interface User {
   referredBy?: string;
   walletAddress?: string;
   isVerified?: boolean;
+  isLineUser?: boolean;
+  lineUserId?: string;
+  lineDisplayName?: string;
+  linePictureUrl?: string;
+  lineConnectedAt?: string;
   createdAt: string;
 }
 
@@ -98,6 +103,7 @@ interface AuthState {
   updateProfile: (updates: Partial<User>) => Promise<void>;
   verifyCustomer: (customerId: string) => Promise<void>;
   generateWalletForHairdresser: () => Promise<{ address: string; privateKey: string; mnemonic: string }>;
+  linkLineAccount: () => Promise<void>;
 }
 
 export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
@@ -143,6 +149,11 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
               referredBy: userData.referredBy,
               walletAddress: userData.walletAddress,
               isVerified: userData.isVerified || false,
+              isLineUser: userData.isLineUser || false,
+              lineUserId: userData.line_user_id,
+              lineDisplayName: userData.line_display_name,
+              linePictureUrl: userData.line_picture_url,
+              lineConnectedAt: userData.line_connected_at?.toDate?.()?.toISOString?.(),
               createdAt: userData.createdAt || new Date().toISOString(),
             };
             setUser(mappedUser);
@@ -555,6 +566,30 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     }
   };
 
+  const linkLineAccount = async () => {
+    if (!user) {
+      throw new Error('ログインが必要です');
+    }
+
+    const { LineAuthService } = await import('@/services/LineAuthService');
+
+    const result = await LineAuthService.startLineLogin(user.id);
+
+    switch (result.status) {
+      case 'linked':
+        // FirestoreのデータはonSnapshotで自動更新されるため、ここでは何もしない
+        break;
+      case 'login':
+        throw new Error('このLINEアカウントは別のユーザーに連携されています');
+      case 'error':
+        throw new Error(result.message || 'LINE連携に失敗しました');
+      case 'cancelled':
+        break;
+      case 'new_user':
+        throw new Error('LINEアカウントがBeauty Proofに登録されていません。新規登録してください。');
+    }
+  };
+
   return {
     user,
     isLoading,
@@ -565,5 +600,6 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     updateProfile,
     verifyCustomer,
     generateWalletForHairdresser,
+    linkLineAccount,
   };
 });

@@ -6,8 +6,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/providers/AuthProvider';
 import { useRatings } from '@/providers/RatingProvider';
 import { serviceIdsToMenuTypes } from '@/lib/menu-utils';
-import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, Palette, QrCode, Award, Camera, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Play, Lock } from 'lucide-react-native';
+import { User, MapPin, LogOut, Settings, Sparkles, X, Save, Bell, Shield, ShieldCheck, Palette, QrCode, Award, Camera, Gift, Info, Zap, Heart, Clock, Users as UsersIcon, Wallet, Network, ExternalLink, RefreshCw, Coins, Trophy, Scissors, Play, Lock } from 'lucide-react-native';
 import IdentityVerificationButton from '@/components/IdentityVerificationButton';
+import LineLoginButton from '@/components/LineLoginButton';
 import { router } from 'expo-router';
 import QRCodeComponent from '@/components/QRCode';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, logout, updateProfile, generateWalletForHairdresser } = useAuth();
+  const { user, logout, updateProfile, generateWalletForHairdresser, linkLineAccount } = useAuth();
   const { createRatingTask } = useRatingTasks();
   const { getBTDistribution, getTechnicalBreakdown, getRatingsByCustomer } = useRatings();
   const { triggerPreview, triggerNormalPreview } = useBPEarned();
@@ -429,6 +430,43 @@ export default function ProfileScreen() {
           )}
 
           <IdentityVerificationButton isVerified={user.isVerified} />
+
+          {/* LINE 連携状態 */}
+          <View style={styles.lineSection}>
+            {user.lineUserId ? (
+              <View style={styles.lineConnectedCard}>
+                <View style={styles.lineConnectedLeft}>
+                  {user.linePictureUrl ? (
+                    <Image
+                      source={{ uri: user.linePictureUrl }}
+                      style={styles.lineAvatar}
+                    />
+                  ) : (
+                    <View style={styles.lineAvatarPlaceholder}>
+                      <Text style={styles.lineAvatarText}>LINE</Text>
+                    </View>
+                  )}
+                  <View style={styles.lineConnectedInfo}>
+                    <Text style={styles.lineConnectedTitle}>LINE連携済み</Text>
+                    {user.lineDisplayName ? (
+                      <Text style={styles.lineConnectedName}>{user.lineDisplayName}</Text>
+                    ) : null}
+                  </View>
+                </View>
+                <ShieldCheck size={20} color="#06C755" />
+              </View>
+            ) : (
+              <View style={styles.lineNotConnectedCard}>
+                <View style={styles.lineNotConnectedInfo}>
+                  <Text style={styles.lineNotConnectedTitle}>LINE未連携</Text>
+                  <Text style={styles.lineNotConnectedDesc}>
+                    LINEアカウントと連携すると、LINEでログインできるようになります
+                  </Text>
+                </View>
+                <LineLoginButton variant="compact" linkMode={true} />
+              </View>
+            )}
+          </View>
         </View>
 
         {user.role === 'customer' && (
@@ -1694,6 +1732,79 @@ const styles = StyleSheet.create({
     color: '#2C3E50',
     lineHeight: 20,
   },
+  lineSection: {
+    marginTop: 16,
+  },
+  lineConnectedCard: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    backgroundColor: 'rgba(6, 199, 85, 0.08)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 199, 85, 0.2)',
+  } as const,
+  lineConnectedLeft: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 12,
+    flex: 1,
+  } as const,
+  lineAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#06C755',
+  } as const,
+  lineAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#06C755',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  } as const,
+  lineAvatarText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '900' as const,
+  } as const,
+  lineConnectedInfo: {
+    flex: 1,
+  } as const,
+  lineConnectedTitle: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#06C755',
+  } as const,
+  lineConnectedName: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    marginTop: 2,
+  } as const,
+  lineNotConnectedCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  } as const,
+  lineNotConnectedInfo: {
+    marginBottom: 12,
+  } as const,
+  lineNotConnectedTitle: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#2C3E50',
+    marginBottom: 4,
+  } as const,
+  lineNotConnectedDesc: {
+    fontSize: 12,
+    color: '#7F8C8D',
+    lineHeight: 18,
+  } as const,
   statsContainer: {
     paddingHorizontal: 24,
     marginBottom: 24,

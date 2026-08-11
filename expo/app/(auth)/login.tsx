@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import LineLoginButton from '@/components/LineLoginButton';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -130,6 +131,14 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>または</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <LineLoginButton />
 
           <View style={styles.demoContainer}>
             <Text style={styles.demoTitle}>デモアカウント</Text>
@@ -265,6 +274,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginHorizontal: 12,
   },
   demoButtonText: {
     color: '#2C3E50',

@@ -77,6 +77,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="booking-confirmation" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/line/callback" options={{ headerShown: false }} />
     </Stack>
   );
 }

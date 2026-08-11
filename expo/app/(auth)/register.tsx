@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
 import { ArrowLeft, User, Mail, Lock, MapPin, Navigation, TestTube, Map, Camera, QrCode as QrCodeIcon, Scan } from 'lucide-react-native';
 import IdentityVerificationButton from '@/components/IdentityVerificationButton';
+import { LineAuthService } from '@/services/LineAuthService';
+import LineLoginButton from '@/components/LineLoginButton';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -80,6 +82,9 @@ const MapPreviewComponent = ({ latitude, longitude, workplace, address }: {
 };
 
 export default function RegisterScreen() {
+  const searchParams = useLocalSearchParams();
+  const isLineRegistration = !!(searchParams.lineUserId && searchParams.lineRole);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -104,11 +109,78 @@ export default function RegisterScreen() {
   const [referralCode, setReferralCode] = useState<string>('');
   const { register } = useAuth();
 
+  // LINE登録フロー: クエリパラメータから初期値を設定
+  useEffect(() => {
+    if (isLineRegistration) {
+      const lineRole = searchParams.lineRole as 'hairdresser' | 'customer';
+      const lineDisplayName = (searchParams.lineDisplayName as string) || '';
+      const linePictureUrl = (searchParams.linePictureUrl as string) || '';
+
+      setFormData(prev => ({
+        ...prev,
+        name: lineDisplayName,
+        role: lineRole,
+        profileImageUri: linePictureUrl,
+      }));
+    }
+  }, [isLineRegistration, searchParams.lineRole, searchParams.lineDisplayName, searchParams.linePictureUrl]);
+
 
 
   const handleRegister = async () => {
 
-    
+    // LINE登録の場合はemail/password不要
+    if (isLineRegistration) {
+      if (!formData.name?.trim()) {
+        Alert.alert('エラー', 'お名前を入力してください');
+        return;
+      }
+
+      if (formData.role === 'hairdresser' && (!formData.workplace?.trim() || !formData.workplaceName?.trim() || formData.latitude === undefined || formData.longitude === undefined)) {
+        Alert.alert('エラー', '美容師の場合は勤務地名、住所、位置情報を設定してください');
+        return;
+      }
+
+      if (formData.role === 'hairdresser' && selectedServices.size === 0) {
+        Alert.alert('エラー', '対応可能な施術を少なくとも1つ選択してください');
+        return;
+      }
+
+      if (formData.gender === 'unspecified') {
+        Alert.alert('エラー', '性別を選択してください');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        await LineAuthService.registerWithLine({
+          lineUserId: searchParams.lineUserId as string,
+          lineDisplayName: (searchParams.lineDisplayName as string) || '',
+          linePictureUrl: (searchParams.linePictureUrl as string) || null,
+          name: formData.name,
+          role: formData.role,
+          gender: formData.gender,
+          workplace: formData.workplace || undefined,
+          workplaceName: formData.workplaceName || undefined,
+          selfIntroduction: formData.selfIntroduction || undefined,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          address: formData.address || undefined,
+          availableServices: formData.role === 'hairdresser' ? Array.from(selectedServices) : undefined,
+          referredBy: formData.referredBy || undefined,
+        });
+
+        await LineAuthService.clearPendingLineUser();
+        router.replace('/(tabs)/home' as any);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'LINE登録に失敗しました';
+        Alert.alert('登録エラー', errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     if (!formData.name?.trim() || !formData.email?.trim() || !formData.password?.trim()) {
       Alert.alert('エラー', '必須項目を入力してください');
       return;
@@ -453,28 +525,40 @@ export default function RegisterScreen() {
                 />
               </View>
 
-              <View style={styles.inputContainer}>
-                <Mail size={20} color="#7F8C8D" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="メールアドレス *"
-                  value={formData.email}
-                  onChangeText={(value) => updateFormData('email', value)}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+              {!isLineRegistration && (
+                <>
+                  <View style={styles.inputContainer}>
+                    <Mail size={20} color="#7F8C8D" style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="メールアドレス *"
+                      value={formData.email}
+                      onChangeText={(value) => updateFormData('email', value)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
 
-              <View style={styles.inputContainer}>
-                <Lock size={20} color="#7F8C8D" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="パスワード *"
-                  value={formData.password}
-                  onChangeText={(value) => updateFormData('password', value)}
-                  secureTextEntry
-                />
-              </View>
+                  <View style={styles.inputContainer}>
+                    <Lock size={20} color="#7F8C8D" style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="パスワード *"
+                      value={formData.password}
+                      onChangeText={(value) => updateFormData('password', value)}
+                      secureTextEntry
+                    />
+                  </View>
+                </>
+              )}
+
+              {isLineRegistration && (
+                <View style={styles.lineRegisterNotice}>
+                  <Text style={styles.lineRegisterNoticeText}>
+                    LINE アカウントで登録します。メールアドレス・パスワードは不要です。
+                  </Text>
+                </View>
+              )}
 
               {formData.role === 'hairdresser' && (
                 <React.Fragment>
@@ -972,6 +1056,20 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
+  },
+  lineRegisterNotice: {
+    backgroundColor: 'rgba(6, 199, 85, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 199, 85, 0.3)',
+  },
+  lineRegisterNoticeText: {
+    fontSize: 14,
+    color: '#06C755',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '500',
   },
   locationContainer: {
     flexDirection: 'row',

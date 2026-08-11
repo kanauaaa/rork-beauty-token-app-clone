@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 
 import { appRouter } from "./trpc/app-router";
 import { createContext } from "./trpc/create-context";
+import { lineRoutes } from "./trpc/routes/line-auth";
 
 const app = new Hono();
 
@@ -17,6 +18,9 @@ app.use(
     createContext,
   }),
 );
+
+// LINE OAuth endpoints
+app.route("/api/line", lineRoutes);
 
 app.get("/", (c) => {
   return c.json({ status: "ok", message: "Beauty Token API is running" });
