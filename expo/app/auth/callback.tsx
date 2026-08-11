@@ -1,54 +1,104 @@
 /**
  * デジタル認証アプリ コールバック画面
  *
- * OIDC Authorization Code Flow のコールバックを処理する。
- * AuthService.startAuthentication() がブラウザセッションを管理し、
- * リダイレクト後にこのページが結果を表示する。
+ * Web環境: ブラウザがリダイレクトしてこのページに到達する。
+ *   URLパラメータ (?code=...&state=... または ?error=...) を処理する。
+ * Native環境: openAuthSessionAsync がリダイレクトを捕捉し、
+ *   IdentityVerificationButton 側で処理が完結する。この画面は到達しない。
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
-import { AuthService, AuthResult } from '@/services/AuthService';
 import { router } from 'expo-router';
+import { AuthService } from '@/services/AuthService';
+import { useAuth } from '@/providers/AuthProvider';
+import { Platform } from 'react-native';
 
 type DisplayState = 'loading' | 'success' | 'error' | 'cancelled';
 
 export default function AuthCallbackScreen() {
   const insets = useSafeAreaInsets();
+  const { user, updateProfile } = useAuth();
   const [displayState, setDisplayState] = useState<DisplayState>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const processedRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
 
-    const processCallback = async () => {
+    const processWebCallback = async () => {
+      if (processedRef.current) return;
+      processedRef.current = true;
+
       try {
-        // AuthServiceがブラウザセッションの結果を処理
-        const result: AuthResult = await AuthService.startAuthentication();
+        // Web環境: URLパラメータから認証結果を取得
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const url = window.location.href;
+          console.log('[AuthCallback] Web callback URL:', url);
 
-        if (!mounted) return;
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get('code');
+          const state = params.get('state');
+          const error = params.get('error');
+          const errorDescription = params.get('error_description');
 
-        switch (result.status) {
-          case 'success':
-            // 認証成功 — verified=true に更新（仮実装: ログイン中ユーザー）
-            // TODO: トークン取得・UserInfo取得を実装後に本格運用
-            setDisplayState('success');
-            break;
-
-          case 'error':
-            setErrorMessage(result.message || 'エラーが発生しました');
+          // エラー応答
+          if (error) {
+            if (!mounted) return;
+            setErrorMessage(errorDescription || error);
             setDisplayState('error');
-            break;
+            return;
+          }
 
-          case 'cancelled':
+          // キャンセル（パラメータなし）
+          if (!code && !state) {
+            if (!mounted) return;
             setDisplayState('cancelled');
-            break;
+            return;
+          }
+
+          // 認証コードがある場合 → state検証 + verified設定
+          if (code) {
+            const result = await AuthService.processCallbackFromUrl(url);
+
+            if (!mounted) return;
+
+            if (result.status === 'success') {
+              // verified=true に更新
+              if (user?.id) {
+                try {
+                  await AuthService.setVerified(user.id);
+                  await updateProfile({ isVerified: true });
+                } catch (e) {
+                  console.warn('[AuthCallback] setVerified error:', e);
+                }
+              }
+              setDisplayState('success');
+            } else if (result.status === 'error') {
+              setErrorMessage(result.message);
+              setDisplayState('error');
+            } else {
+              setDisplayState('cancelled');
+            }
+            return;
+          }
+
+          // stateのみ（キャンセル等）
+          if (!mounted) return;
+          setDisplayState('cancelled');
+          return;
         }
+
+        // Native環境: この画面には到達しない（openAuthSessionAsyncが処理済み）
+        // 到達した場合は前の画面に戻る
+        if (!mounted) return;
+        setDisplayState('loading');
       } catch (error) {
         if (!mounted) return;
+        console.error('[AuthCallback] processWebCallback error:', error);
         setErrorMessage(
           error instanceof Error ? error.message : '不明なエラーが発生しました',
         );
@@ -56,14 +106,14 @@ export default function AuthCallbackScreen() {
       }
     };
 
-    processCallback();
+    processWebCallback();
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user?.id, updateProfile]);
 
-  // 3秒後に自動で前の画面に戻る
+  // 2.5秒後に自動で前の画面に戻る
   useEffect(() => {
     if (displayState === 'loading') return;
 
@@ -73,7 +123,7 @@ export default function AuthCallbackScreen() {
       } else {
         router.replace('/(tabs)/home' as any);
       }
-    }, 3000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [displayState]);
@@ -83,8 +133,8 @@ export default function AuthCallbackScreen() {
       case 'loading':
         return (
           <>
-            <Text style={styles.title}>本人確認中...</Text>
-            <Text style={styles.subtitle}>デジタル認証アプリと通信しています</Text>
+            <Text style={styles.title}>本人確認フローを完了しています...</Text>
+            <Text style={styles.subtitle}>まもなく画面に戻ります</Text>
           </>
         );
 

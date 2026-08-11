@@ -18,14 +18,35 @@
 
 import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
+import { Platform, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDb } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
 // ─── 環境変数 ───
 const CLIENT_ID = process.env.EXPO_PUBLIC_DIGITAL_AUTH_CLIENT_ID ?? '';
-const REDIRECT_URI = process.env.EXPO_PUBLIC_DIGITAL_AUTH_REDIRECT_URI ?? 'https://beautyproof.jp/auth/callback';
 const AUTH_BASE_URL = process.env.EXPO_PUBLIC_DIGITAL_AUTH_BASE_URL ?? 'https://sb-auth-and-sign.go.jp/api';
+
+/**
+ * リダイレクトURIを取得
+ *
+ * Web環境: 常に現在のオリジンを使用（プレビュー環境でもコールバックを捕捉できるように）
+ *   ※ 環境変数のREDIRECT_URIは本番ドメインを想定しているため、
+ *   プレビュー環境では不一致になる。Webでは実際のURLを使用する。
+ * Native環境: 環境変数を使用（カスタムスキームでOSが処理）
+ */
+function getRedirectUri(): string {
+  // Web環境では常に現在のオリジンを使用
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/auth/callback`;
+  }
+  // Native環境では環境変数を使用
+  const envUri = process.env.EXPO_PUBLIC_DIGITAL_AUTH_REDIRECT_URI;
+  if (envUri && envUri.length > 0) {
+    return envUri;
+  }
+  return 'https://beautyproof.jp/auth/callback';
+}
 
 // ─── ストレージキー ───
 const STORAGE_STATE = '@digital_auth_state';
@@ -115,6 +136,7 @@ export class AuthService {
    * @returns 認証URL、state、nonce、code_verifier
    */
   static async buildAuthSession(): Promise<AuthSessionData> {
+    const redirectUri = getRedirectUri();
     const state = await this.generateRandomString(32);
     const nonce = await this.generateRandomString(32);
     const codeVerifier = await this.generateCodeVerifier();
@@ -128,7 +150,7 @@ export class AuthService {
       response_type: 'code',
       scope: 'openid name address birthdate gender',
       client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       state,
       nonce,
       code_challenge: codeChallenge,
@@ -137,6 +159,12 @@ export class AuthService {
     });
 
     const url = `${authEndpoint}?${params.toString()}`;
+
+    console.log('[AuthService] buildAuthSession:', {
+      redirectUri,
+      clientId: CLIENT_ID ? `${CLIENT_ID.slice(0, 6)}...` : '(empty)',
+      authEndpoint,
+    });
 
     // state/nonce/code_verifier をストレージに保存（Callback検証用）
     await AsyncStorage.setItem(STORAGE_STATE, state);
@@ -152,15 +180,27 @@ export class AuthService {
    */
   static async startAuthentication(): Promise<AuthResult> {
     if (!CLIENT_ID) {
-      return { status: 'error', message: 'CLIENT_IDが設定されていません' };
+      console.warn('[AuthService] CLIENT_IDが未設定です');
+      return { status: 'error', message: 'CLIENT_IDが設定されていません。環境変数 EXPO_PUBLIC_DIGITAL_AUTH_CLIENT_ID を確認してください。' };
     }
 
     try {
       const session = await this.buildAuthSession();
+      const redirectUri = getRedirectUri();
 
+      // Web環境では window.location.href で直接遷移（iframe内のポップアップはブロックされるため）
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        console.log('[AuthService] Web環境: window.location.href で遷移');
+        window.location.href = session.url;
+        // ブラウザが遷移するため、ここには到達しない
+        return { status: 'cancelled' };
+      }
+
+      // ネイティブ環境では openAuthSessionAsync を使用
+      console.log('[AuthService] Native環境: openAuthSessionAsync を使用');
       const result = await WebBrowser.openAuthSessionAsync(
         session.url,
-        REDIRECT_URI,
+        redirectUri,
       );
 
       // ユーザーがブラウザを閉じた/キャンセル
@@ -176,6 +216,7 @@ export class AuthService {
       return { status: 'error', message: '不明なエラーが発生しました' };
     } catch (error) {
       const message = error instanceof Error ? error.message : '認証開始に失敗しました';
+      console.error('[AuthService] startAuthentication error:', message);
       return { status: 'error', message };
     }
   }
@@ -332,7 +373,24 @@ export class AuthService {
       isVerified: true,
     });
   }
+
+  /**
+   * コールバックURLから認証結果を処理（Web環境用）
+   * コールバック画面のURLパラメータから直接結果を取得する
+   */
+  static async processCallbackFromUrl(callbackUrl: string): Promise<AuthResult> {
+    return this.handleCallbackUrl(callbackUrl);
+  }
+
+  /**
+   * 現在のリダイレクトURIを取得（外部参照用）
+   */
+  static getRedirectUri(): string {
+    return getRedirectUri();
+  }
 }
 
-// WebBrowserの認証セッション完了を処理（コールバックページで呼び出し）
-WebBrowser.maybeCompleteAuthSession();
+// WebBrowserの認証セッション完了を処理（ネイティブ環境用）
+if (Platform.OS !== 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}

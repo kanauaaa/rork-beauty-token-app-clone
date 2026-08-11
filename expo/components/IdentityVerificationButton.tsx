@@ -8,10 +8,9 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import { ShieldCheck, CreditCard } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
 import { AuthService } from '@/services/AuthService';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -43,7 +42,23 @@ export default function IdentityVerificationButton({
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
 
+      // Web環境では startAuthentication() が window.location.href で
+      // デジタル認証アプリの認可URLへ遷移する。ブラウザが戻ってきた時、
+      // auth/callback 画面がURLパラメータを処理する。
+      // Native環境では openAuthSessionAsync が同期的に結果を返す。
       const result = await AuthService.startAuthentication();
+
+      // Web環境では遷移後にここには到達しないが、万一到達した場合はキャンセル扱い
+      if (Platform.OS === 'web') {
+        // window.location.href が失敗した場合のみここに到達
+        if (result.status === 'error') {
+          Alert.alert(
+            '本人確認を開始できません',
+            result.message || 'デジタル認証アプリの設定を確認してください。',
+          );
+        }
+        return;
+      }
 
       switch (result.status) {
         case 'success':
@@ -53,14 +68,11 @@ export default function IdentityVerificationButton({
               await AuthService.setVerified(user.id);
               await updateProfile({ isVerified: true });
             } catch (e) {
-              // Firestore更新エラーはユーザー表示には影響させない（仮実装）
               console.warn('[IdentityVerification] setVerified error:', e);
             }
           }
 
-          if (Platform.OS !== 'web') {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
           setIsVerified(true);
           Alert.alert('本人確認が完了しました', 'マイナンバーカードによる本人確認が完了しました。');
@@ -68,21 +80,21 @@ export default function IdentityVerificationButton({
           break;
 
         case 'error':
-          if (Platform.OS !== 'web') {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          }
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           Alert.alert('本人確認に失敗しました', result.message || 'もう一度お試しください。');
           break;
 
         case 'cancelled':
-          if (Platform.OS !== 'web') {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          }
-          Alert.alert('本人確認をキャンセルしました', '本人確認がキャンセルされました。');
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          // キャンセル時はアラートを表示しない（ユーザーが意図的に閉じたため）
           break;
       }
     } catch (error) {
-      Alert.alert('本人確認に失敗しました', 'エラーが発生しました。もう一度お試しください。');
+      console.error('[IdentityVerification] handleVerify error:', error);
+      Alert.alert(
+        '本人確認に失敗しました',
+        error instanceof Error ? error.message : 'エラーが発生しました。もう一度お試しください。',
+      );
     } finally {
       setIsLoading(false);
     }
