@@ -103,7 +103,7 @@ interface AuthState {
   updateProfile: (updates: Partial<User>) => Promise<void>;
   verifyCustomer: (customerId: string) => Promise<void>;
   generateWalletForHairdresser: () => Promise<{ address: string; privateKey: string; mnemonic: string }>;
-  linkLineAccount: () => Promise<void>;
+  linkLineAccount: (lineUserInfo?: { lineUserId: string; displayName: string; pictureUrl: string | null }) => Promise<void>;
 }
 
 export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
@@ -566,14 +566,30 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
     }
   };
 
-  const linkLineAccount = async () => {
+  const linkLineAccount = async (lineUserInfo?: { lineUserId: string; displayName: string; pictureUrl: string | null }) => {
     if (!user) {
       throw new Error('ログインが必要です');
     }
 
     const { LineAuthService } = await import('@/services/LineAuthService');
 
-    const result = await LineAuthService.startLineLogin(user.id);
+    // Webコールバックから呼ばれた場合: lineUserInfoが渡されているのでFirestoreに保存する
+    if (lineUserInfo) {
+      const { getDb } = await import('@/lib/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const db = getDb();
+      await updateDoc(doc(db, 'users', user.id), {
+        lineUserId: lineUserInfo.lineUserId,
+        lineDisplayName: lineUserInfo.displayName,
+        linePictureUrl: lineUserInfo.pictureUrl,
+        isLineUser: true,
+        lineConnectedAt: new Date(),
+      });
+      return;
+    }
+
+    // ボタン押下から呼ばれた場合: LINE認証フローを開始
+    const result = await LineAuthService.startLineLogin('link', user.id);
 
     switch (result.status) {
       case 'linked':

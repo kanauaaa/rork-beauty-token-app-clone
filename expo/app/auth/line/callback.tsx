@@ -1,29 +1,139 @@
 /**
  * LINE OAuth コールバック画面
  *
- * LineAuthService.startLineLogin() がブラウザセッションを管理し、
- * リダイレクト後にこのページが結果を表示する。
+ * LINE認可サーバーからリダイレクトされてこのページに到達する。
+ * URLパラメータ (?code=...&state=...) を解析し、バックエンドでトークン交換・
+ * ユーザー判定を行う。
  *
- * 成功時: 自動的にホームまたは次の画面へ遷移
- * 新規ユーザー: ロール選択画面へ遷移
- * エラー/キャンセル: 認証画面に戻る
+ * Web環境: ブラウザがこのURLに直接遷移してくる
+ * Native環境: openAuthSessionAsync がこの画面に遷移する（または in-app ブラウザを閉じる）
  */
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle, XCircle, AlertCircle, UserPlus } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { LineAuthService, LineAuthResult } from '@/services/LineAuthService';
+import { useAuth } from '@/providers/AuthProvider';
 
 type CallbackState = 'loading' | 'login_success' | 'new_user' | 'linked' | 'error' | 'cancelled';
 
 export default function LineCallbackScreen() {
   const insets = useSafeAreaInsets();
+  const { linkLineAccount } = useAuth();
   const [displayState, setDisplayState] = useState<CallbackState>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const processedRef = useRef(false);
 
-  // 3秒後に自動で次の画面へ遷移
+  useEffect(() => {
+    let mounted = true;
+
+    const processCallback = async () => {
+      if (processedRef.current) return;
+      processedRef.current = true;
+
+      try {
+        // URLパラメータを取得
+        let callbackUrl: string;
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          callbackUrl = window.location.href;
+        } else {
+          // Native環境でこの画面に直接遷移してきた場合は何もできない
+          // openAuthSessionAsync が結果を処理済みのはず
+          if (!mounted) return;
+          setDisplayState('error');
+          setErrorMessage('認証結果が見つかりません。もう一度お試しください。');
+          return;
+        }
+
+        console.log('[LineCallback] Processing URL:', callbackUrl);
+
+        const url = new URL(callbackUrl);
+        const params = url.searchParams;
+        const code = params.get('code');
+        const state = params.get('state');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+
+        // エラー応答
+        if (error) {
+          if (!mounted) return;
+          setErrorMessage(errorDescription || error);
+          setDisplayState('error');
+          return;
+        }
+
+        // キャンセル（パラメータなし）
+        if (!code && !state) {
+          if (!mounted) return;
+          setDisplayState('cancelled');
+          return;
+        }
+
+        if (!code) {
+          if (!mounted) return;
+          setErrorMessage('認証コードが見つかりません');
+          setDisplayState('error');
+          return;
+        }
+
+        // バックエンドでトークン交換・ユーザー判定
+        const result: LineAuthResult = await LineAuthService.processCallback(
+          callbackUrl,
+          undefined,
+        );
+
+        if (!mounted) return;
+
+        switch (result.status) {
+          case 'login':
+            // カスタムトークンでサインイン
+            await LineAuthService.signInWithCustomToken(result.customToken);
+            setDisplayState('login_success');
+            break;
+
+          case 'linked':
+            // 既存ユーザーへのLINE連携
+            await linkLineAccount(result.lineUserInfo);
+            setDisplayState('linked');
+            break;
+
+          case 'new_user':
+            // 新規ユーザー情報を保存し、ロール選択画面へ
+            await LineAuthService.clearPendingLineUser();
+            await LineAuthService.savePendingLineUser(result.lineUserInfo);
+            setDisplayState('new_user');
+            break;
+
+          case 'error':
+            setErrorMessage(result.message);
+            setDisplayState('error');
+            break;
+
+          case 'cancelled':
+            setDisplayState('cancelled');
+            break;
+        }
+      } catch (err) {
+        console.error('[LineCallback] processCallback error:', err);
+        if (!mounted) return;
+        setErrorMessage(
+          err instanceof Error ? err.message : 'LINE認証の処理に失敗しました',
+        );
+        setDisplayState('error');
+      }
+    };
+
+    processCallback();
+
+    return () => {
+      mounted = false;
+    };
+  }, [linkLineAccount]);
+
+  // 2.5秒後に自動で次の画面へ遷移
   useEffect(() => {
     if (displayState === 'loading') return;
 

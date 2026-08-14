@@ -19,6 +19,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuthInstance } from '@/lib/firebase';
 import { signInWithCustomToken } from 'firebase/auth';
 
+// 認証モード（コールバック画面で処理分岐するため）
+export type LineAuthMode = 'login' | 'register' | 'link';
+const STORAGE_MODE = '@line_auth_mode';
+
 // ─── 環境変数 ───
 const CHANNEL_ID = process.env.EXPO_PUBLIC_LINE_CHANNEL_ID ?? '';
 const CALLBACK_URL =
@@ -90,10 +94,14 @@ export class LineAuthService {
 
   /**
    * LINEログインを開始: ブラウザを開き、コールバックを待機
+   * @param mode 認証モード（login / register / link）
    * @param currentUid ログイン中のFirebase UID（LINE連携時）
    * @returns 認証結果
    */
-  static async startLineLogin(currentUid?: string): Promise<LineAuthResult> {
+  static async startLineLogin(
+    mode: LineAuthMode = 'login',
+    currentUid?: string,
+  ): Promise<LineAuthResult> {
     if (!CHANNEL_ID) {
       return { status: 'error', message: 'LINE_CHANNEL_IDが設定されていません' };
     }
@@ -101,7 +109,19 @@ export class LineAuthService {
     try {
       const { url } = await this.buildAuthUrl();
 
-      // Webの場合はブラウザリダイレクト、Nativeの場合はopenAuthSessionAsync
+      // 認証モードを保存（コールバック画面で処理分岐するため）
+      await AsyncStorage.setItem(STORAGE_MODE, mode);
+
+      // Web環境では window.location.href で直接遷移（iframe内のポップアップはブロックされるため）
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        console.log('[LineAuthService] Web環境: window.location.href でLINE認可URLへ遷移');
+        window.location.href = url;
+        // ブラウザが遷移するため、ここには到達しない
+        return { status: 'cancelled' };
+      }
+
+      // ネイティブ環境では openAuthSessionAsync を使用
+      console.log('[LineAuthService] Native環境: openAuthSessionAsync を使用');
       const result = await WebBrowser.openAuthSessionAsync(url, CALLBACK_URL);
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
@@ -118,6 +138,24 @@ export class LineAuthService {
         error instanceof Error ? error.message : 'LINE認証の開始に失敗しました';
       return { status: 'error', message };
     }
+  }
+
+  /**
+   * 認証モードを取得（コールバック画面用）
+   */
+  static async getAuthMode(): Promise<LineAuthMode | null> {
+    const mode = await AsyncStorage.getItem(STORAGE_MODE);
+    if (mode === 'login' || mode === 'register' || mode === 'link') {
+      return mode;
+    }
+    return null;
+  }
+
+  /**
+   * 認証モードをクリア
+   */
+  static async clearAuthMode(): Promise<void> {
+    await AsyncStorage.removeItem(STORAGE_MODE);
   }
 
   /**
@@ -277,6 +315,16 @@ export class LineAuthService {
   }
 
   /**
+   * 保留中のLINE新規ユーザー情報を保存（登録画面で使用）
+   */
+  static async savePendingLineUser(lineUserInfo: LineUserInfo): Promise<void> {
+    await AsyncStorage.setItem(
+      STORAGE_PENDING_LINE_USER,
+      JSON.stringify(lineUserInfo),
+    );
+  }
+
+  /**
    * 保留中のLINE新規ユーザー情報を取得（登録画面で使用）
    */
   static async getPendingLineUser(): Promise<LineUserInfo | null> {
@@ -301,6 +349,7 @@ export class LineAuthService {
    */
   static async cleanup(): Promise<void> {
     await AsyncStorage.removeItem(STORAGE_STATE);
+    await AsyncStorage.removeItem(STORAGE_MODE);
   }
 
   /**

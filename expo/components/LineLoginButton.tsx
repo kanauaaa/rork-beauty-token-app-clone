@@ -28,11 +28,14 @@ interface LineLoginButtonProps {
   variant?: 'default' | 'compact';
   /** 既存ユーザーのLINE連携用（trueの場合は連携モード） */
   linkMode?: boolean;
+  /** 認証モード（linkMode=false時のみ使用） */
+  authMode?: 'login' | 'register';
 }
 
 export default function LineLoginButton({
   variant = 'default',
   linkMode = false,
+  authMode = 'login',
 }: LineLoginButtonProps) {
   const { user, linkLineAccount } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +74,8 @@ export default function LineLoginButton({
       }
 
       // 新規ログイン / LINEログイン
-      const currentUid = user?.id;
-      result = await LineAuthService.startLineLogin(currentUid);
+      const mode = linkMode ? 'link' : authMode;
+      result = await LineAuthService.startLineLogin(mode, user?.id);
 
       switch (result.status) {
         case 'login': {
