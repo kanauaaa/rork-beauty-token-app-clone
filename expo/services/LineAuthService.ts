@@ -112,11 +112,23 @@ export class LineAuthService {
       // 認証モードを保存（コールバック画面で処理分岐するため）
       await AsyncStorage.setItem(STORAGE_MODE, mode);
 
-      // Web環境では window.location.href で直接遷移（iframe内のポップアップはブロックされるため）
+      // Web環境では新しいタブで認可ページを開く（iframe内では外部サイトがX-Frame-Optionsで拒否されるため）
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        console.log('[LineAuthService] Web環境: window.location.href でLINE認可URLへ遷移');
-        window.location.href = url;
-        // ブラウザが遷移するため、ここには到達しない
+        console.log('[LineAuthService] Web環境: 新しいタブでLINE認可URLを開きます');
+        const opened = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+          console.warn('[LineAuthService] ポップアップブロックで開けませんでした。フォールバックとして同じウィンドウで遷移します');
+          // フォールバック: 同じウィンドウで遷移（X-Frame-Options対象になる可能性あり）
+          if (window.top) {
+            try {
+              window.top.location.href = url;
+            } catch {
+              window.location.href = url;
+            }
+          } else {
+            window.location.href = url;
+          }
+        }
         return { status: 'cancelled' };
       }
 

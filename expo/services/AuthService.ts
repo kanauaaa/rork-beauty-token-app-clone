@@ -188,11 +188,22 @@ export class AuthService {
       const session = await this.buildAuthSession();
       const redirectUri = getRedirectUri();
 
-      // Web環境では window.location.href で直接遷移（iframe内のポップアップはブロックされるため）
+      // Web環境では新しいタブで認可ページを開く（iframe内では外部サイトがX-Frame-Optionsで拒否されるため）
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        console.log('[AuthService] Web環境: window.location.href で遷移');
-        window.location.href = session.url;
-        // ブラウザが遷移するため、ここには到達しない
+        console.log('[AuthService] Web環境: 新しいタブで認可URLを開きます');
+        const opened = window.open(session.url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+          console.warn('[AuthService] ポップアップブロックで開けませんでした。フォールバックとして同じウィンドウで遷移します');
+          if (window.top) {
+            try {
+              window.top.location.href = session.url;
+            } catch {
+              window.location.href = session.url;
+            }
+          } else {
+            window.location.href = session.url;
+          }
+        }
         return { status: 'cancelled' };
       }
 
