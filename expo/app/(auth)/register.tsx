@@ -10,6 +10,7 @@ import { LineAuthService } from '@/services/LineAuthService';
 import LineLoginButton from '@/components/LineLoginButton';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { forwardGeocode, reverseGeocode } from '@/lib/geocode';
 
 const WebView = Platform.OS === 'web' 
   ? ({ source, style, ...props }: any) => {
@@ -313,22 +314,26 @@ export default function RegisterScreen() {
       const { latitude, longitude } = location.coords;
       
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ja`
-        );
-        const data = await response.json();
-        
-        const address = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-        
-        updateFormData('latitude', latitude);
-        updateFormData('longitude', longitude);
-        updateFormData('address', address);
-        updateFormData('workplace', data.address?.city || data.address?.town || data.address?.village || address);
-        if (!formData.workplaceName) {
-          updateFormData('workplaceName', data.address?.city || data.address?.town || data.address?.village || address);
+        const result = await reverseGeocode(latitude, longitude);
+
+        if (result) {
+          updateFormData('latitude', latitude);
+          updateFormData('longitude', longitude);
+          updateFormData('address', result.address);
+          updateFormData('workplace', result.address);
+          if (!formData.workplaceName) {
+            updateFormData('workplaceName', result.address);
+          }
+          Alert.alert('成功', '現在地を取得しました');
+        } else {
+          updateFormData('latitude', latitude);
+          updateFormData('longitude', longitude);
+          updateFormData('address', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          if (!formData.workplaceName) {
+            updateFormData('workplaceName', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          }
+          Alert.alert('位置情報を取得しました', '住所の詳細取得に失敗しましたが、座標は保存されました');
         }
-        
-        Alert.alert('成功', '現在地を取得しました');
       } catch (geocodeError) {
 
         updateFormData('latitude', latitude);
@@ -352,21 +357,8 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     try {
-      const apiBaseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-      if (!apiBaseUrl) {
-        throw new Error('APIベースURLが設定されていません');
-      }
+      const results = await forwardGeocode(query.trim());
 
-      const response = await fetch(
-        `${apiBaseUrl}/api/geocode?q=${encodeURIComponent(query.trim())}`
-      );
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || '住所検索に失敗しました');
-      }
-
-      const results = data.results || [];
       if (results.length > 0) {
         const result = results[0];
         const latitude = result.latitude;
@@ -376,12 +368,15 @@ export default function RegisterScreen() {
         updateFormData('longitude', longitude);
         updateFormData('address', result.displayName);
         if (!formData.workplaceName) {
-          updateFormData('workplaceName', result.displayName.split(',')[0]);
+          updateFormData('workplaceName', result.displayName);
         }
 
         Alert.alert('成功', '住所から位置情報を取得しました');
       } else {
-        Alert.alert('エラー', '住所が見つかりませんでした');
+        Alert.alert(
+          '住所が見つかりません',
+          '建物名を省いて再検索してください（例: 東京都江東区豊洲3）'
+        );
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : '住所検索に失敗しました';
