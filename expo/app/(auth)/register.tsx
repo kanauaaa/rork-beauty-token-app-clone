@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
+import { WebView as ExpoWebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth, Gender, ServiceId } from '@/providers/AuthProvider';
@@ -10,74 +11,136 @@ import LineLoginButton from '@/components/LineLoginButton';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
-const MapPreviewComponent = ({ latitude, longitude, workplace, address }: {
+const WebView = Platform.OS === 'web' 
+  ? ({ source, style, ...props }: any) => {
+      const html = typeof source?.html === 'string' ? source.html : '';
+      return (
+        <iframe
+          srcDoc={html}
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            borderRadius: 16,
+          }}
+          {...props}
+        />
+      );
+    }
+  : ExpoWebView;
+
+const MapPreviewComponent = ({ latitude, longitude, workplace, address, onLocationChange }: {
   latitude: number;
   longitude: number;
   workplace: string;
   address: string;
+  onLocationChange?: (lat: number, lon: number) => void;
 }) => {
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.01},${latitude - 0.01},${longitude + 0.01},${latitude + 0.01}&layer=mapnik&marker=${latitude},${longitude}`;
+  const mapHtml = useMemo(() => {
   
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    #map { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    try {
+      const map = L.map('map', {
+        center: [${latitude}, ${longitude}],
+        zoom: 16,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        dragging: true,
+        touchZoom: true,
+        doubleClickZoom: true,
+        tap: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+        minZoom: 10
+      }).addTo(map);
+
+      const marker = L.marker([${latitude}, ${longitude}]).addTo(map);
+
+      map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        marker.setLatLng([lat, lng]);
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapClick', latitude: lat, longitude: lng }));
+        }
+      });
+
+      setTimeout(() => { map.invalidateSize(); }, 100);
+    } catch (error) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#999;">地図の読み込みに失敗しました</div>';
+    }
+  <\/script>
+</body>
+</html>`;
+  }, [latitude, longitude]);
+
   return (
-    <ScrollView style={styles.webMapPreviewContainer} contentContainerStyle={styles.webMapPreviewContent}>
-      <View style={styles.webMapPreviewPlaceholder}>
-        <MapPin size={80} color="#FF69B4" />
-        <Text style={styles.webMapPreviewTitle}>位置情報プレビュー</Text>
-        
-        {Platform.OS === 'web' && (
-          <View style={styles.mapIframeContainer}>
-            <iframe
-              width="100%"
-              height="300"
-              frameBorder="0"
-              scrolling="no"
-              src={mapUrl}
-              style={{ border: 0, borderRadius: 12 }}
-            />
-          </View>
-        )}
-        
-        <View style={styles.webMapPreviewInfo}>
-          <Text style={styles.webMapPreviewLabel}>勤務地:</Text>
-          <Text style={styles.webMapPreviewValue}>{workplace}</Text>
-          
-          <Text style={styles.webMapPreviewLabel}>住所:</Text>
-          <Text style={styles.webMapPreviewValue}>{address}</Text>
-          
-          <Text style={styles.webMapPreviewLabel}>座標:</Text>
-          <Text style={styles.webMapPreviewValue}>
-            緯度: {latitude.toFixed(6)}
-          </Text>
-          <Text style={styles.webMapPreviewValue}>
-            経度: {longitude.toFixed(6)}
-          </Text>
-          
-          <TouchableOpacity
-            style={styles.openMapButton}
-            onPress={() => {
-              const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-              if (Platform.OS === 'web') {
-                window.open(googleMapsUrl, '_blank');
-              } else {
-                Alert.alert('地図アプリ', 'Google Mapsで開きますか？', [
-                  { text: 'キャンセル', style: 'cancel' },
-                  { text: '開く', onPress: () => {} }
-                ]);
+    <View style={styles.webMapPreviewContainer}>
+      <View style={{ height: 300, width: '100%', borderRadius: 16, overflow: 'hidden' }}>
+        <WebView
+          source={{ html: mapHtml }}
+          style={{ flex: 1 }}
+          onMessage={(event: any) => {
+            if (!onLocationChange) return;
+            try {
+              const data = JSON.parse(event.nativeEvent.data);
+              if (data.type === 'mapClick') {
+                onLocationChange(data.latitude, data.longitude);
               }
-            }}
-          >
-            <Navigation size={16} color="white" />
-            <Text style={styles.openMapButtonText}>Google Mapsで開く</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <Text style={styles.webMapPreviewSubtitle}>
-          {Platform.OS === 'web' 
-            ? '上記の地図で位置を確認してください。モバイルアプリではより詳細な地図が表示されます。'
-            : 'この位置情報が美容師アプリに登録されます。'}
-        </Text>
+            } catch {}
+          }}
+        />
       </View>
-    </ScrollView>
+      <View style={styles.webMapPreviewInfo}>
+        <Text style={styles.webMapPreviewLabel}>勤務地:</Text>
+        <Text style={styles.webMapPreviewValue}>{workplace}</Text>
+        <Text style={styles.webMapPreviewLabel}>住所:</Text>
+        <Text style={styles.webMapPreviewValue}>{address}</Text>
+        <Text style={styles.webMapPreviewLabel}>座標:</Text>
+        <Text style={styles.webMapPreviewValue}>緯度: {latitude.toFixed(6)}</Text>
+        <Text style={styles.webMapPreviewValue}>経度: {longitude.toFixed(6)}</Text>
+        <TouchableOpacity
+          style={styles.openMapButton}
+          onPress={() => {
+            const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            if (Platform.OS === 'web') {
+              window.open(googleMapsUrl, '_blank');
+            } else {
+              Alert.alert('地図アプリ', 'Google Mapsで開きますか？', [
+                { text: 'キャンセル', style: 'cancel' },
+                { text: '開く', onPress: () => {} }
+              ]);
+            }
+          }}
+        >
+          <Navigation size={16} color="white" />
+          <Text style={styles.openMapButtonText}>Google Mapsで開く</Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.webMapPreviewSubtitle}>
+        {Platform.OS === 'web' 
+          ? '上記の地図で位置を確認してください。マーカーをドラッグまたは地図をクリックして位置を微調整できます（ネイティブアプリではより詳細な地図が表示されます）。'
+          : '地図をタップして位置を微調整できます。'}
+      </Text>
+    </View>
   );
 };
 
@@ -286,32 +349,45 @@ export default function RegisterScreen() {
 
   const searchLocation = async (query: string) => {
     if (!query.trim()) return;
-    
+
+    setIsLoading(true);
     try {
+      const apiBaseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+      if (!apiBaseUrl) {
+        throw new Error('APIベースURLが設定されていません');
+      }
+
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&accept-language=ja&countrycodes=jp`
+        `${apiBaseUrl}/api/geocode?q=${encodeURIComponent(query.trim())}`
       );
       const data = await response.json();
-      
-      if (data.length > 0) {
-        const result = data[0];
-        const latitude = parseFloat(result.lat);
-        const longitude = parseFloat(result.lon);
-        
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || '住所検索に失敗しました');
+      }
+
+      const results = data.results || [];
+      if (results.length > 0) {
+        const result = results[0];
+        const latitude = result.latitude;
+        const longitude = result.longitude;
+
         updateFormData('latitude', latitude);
         updateFormData('longitude', longitude);
-        updateFormData('address', result.display_name);
+        updateFormData('address', result.displayName);
         if (!formData.workplaceName) {
-          updateFormData('workplaceName', result.display_name.split(',')[0]);
+          updateFormData('workplaceName', result.displayName.split(',')[0]);
         }
-        
+
         Alert.alert('成功', '住所から位置情報を取得しました');
       } else {
         Alert.alert('エラー', '住所が見つかりませんでした');
       }
     } catch (error) {
-
-      Alert.alert('エラー', '住所検索に失敗しました');
+      const message = error instanceof Error ? error.message : '住所検索に失敗しました';
+      Alert.alert('エラー', message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -784,6 +860,10 @@ export default function RegisterScreen() {
               longitude={formData.longitude}
               workplace={formData.workplace}
               address={formData.address}
+              onLocationChange={(lat, lon) => {
+                updateFormData('latitude', lat);
+                updateFormData('longitude', lon);
+              }}
             />
           ) : (
             <View style={styles.webMapPreviewPlaceholder}>
