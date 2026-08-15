@@ -37,7 +37,8 @@ export type ServiceId =
   | 'treatment'
   | 'headSpa'
   | 'hairSet'
-  | 'extensions';
+  | 'extensions'
+  | 'shampoo';
 
 /** Map a tech-chart category ID to whether the hairdresser offers it. */
 export function isTechCategoryAvailable(

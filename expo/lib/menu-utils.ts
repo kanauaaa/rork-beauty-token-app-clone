@@ -29,7 +29,7 @@ export const getMenuColor = (menu: MenuType): string => {
 
 /**
  * 美容師の登録時availableServices（ServiceId[]）をMenuType[]に変換する
- * oneColor/wColor → color、hairSetはMenuTypeに該当なし（除外）
+ * oneColor/wColor → color、hairSet/shampooはMenuTypeに該当なし（除外）
  */
 export const serviceIdsToMenuTypes = (services: ServiceId[] | undefined): MenuType[] => {
   if (!services || services.length === 0) return [];

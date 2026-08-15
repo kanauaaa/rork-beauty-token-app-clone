@@ -321,17 +321,11 @@ export default function RegisterScreen() {
           updateFormData('longitude', longitude);
           updateFormData('address', result.address);
           updateFormData('workplace', result.address);
-          if (!formData.workplaceName) {
-            updateFormData('workplaceName', result.address);
-          }
           Alert.alert('成功', '現在地を取得しました');
         } else {
           updateFormData('latitude', latitude);
           updateFormData('longitude', longitude);
           updateFormData('address', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-          if (!formData.workplaceName) {
-            updateFormData('workplaceName', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-          }
           Alert.alert('位置情報を取得しました', '住所の詳細取得に失敗しましたが、座標は保存されました');
         }
       } catch (geocodeError) {
@@ -367,9 +361,6 @@ export default function RegisterScreen() {
         updateFormData('latitude', latitude);
         updateFormData('longitude', longitude);
         updateFormData('address', result.displayName);
-        if (!formData.workplaceName) {
-          updateFormData('workplaceName', result.displayName);
-        }
 
         Alert.alert('成功', '住所から位置情報を取得しました');
       } else {
@@ -758,11 +749,12 @@ export default function RegisterScreen() {
                       ))}
                     </View>
 
-                    {/* パーマ */}
-                    <Text style={styles.servicesCategoryLabel}>パーマ</Text>
+                    {/* パーマ・縮毛矯正 */}
+                    <Text style={styles.servicesCategoryLabel}>パーマ・縮毛矯正</Text>
                     <View style={styles.servicesGrid}>
                       {([
                         { id: 'perm' as ServiceId, label: 'パーマ' },
+                        { id: 'straightening' as ServiceId, label: '縮毛矯正' },
                       ]).map(item => (
                         <TouchableOpacity
                           key={item.id}
@@ -784,9 +776,9 @@ export default function RegisterScreen() {
                     <Text style={styles.servicesCategoryLabel}>その他</Text>
                     <View style={styles.servicesGrid}>
                       {([
-                        { id: 'straightening' as ServiceId, label: '縮毛矯正' },
                         { id: 'treatment' as ServiceId, label: 'トリートメント' },
                         { id: 'headSpa' as ServiceId, label: 'ヘッドスパ' },
+                        { id: 'shampoo' as ServiceId, label: 'シャンプー' },
                         { id: 'hairSet' as ServiceId, label: 'ヘアセット' },
                         { id: 'extensions' as ServiceId, label: 'エクステ' },
                       ]).map(item => (
