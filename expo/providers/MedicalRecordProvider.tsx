@@ -17,6 +17,7 @@ import {
   getDocs,
   getDoc,
   increment,
+  limit,
 } from 'firebase/firestore';
 
 export type MenuType = 'cut' | 'color' | 'perm' | 'straightening' | 'treatment' | 'headspa' | 'extension';
@@ -174,7 +175,7 @@ interface MedicalRecordState {
   records: MedicalRecord[];
   treatmentHistory: TreatmentHistory[];
   isLoading: boolean;
-  addRecord: (record: Omit<MedicalRecord, 'id' | 'requestDate'>) => Promise<void>;
+  addRecord: (record: Omit<MedicalRecord, 'id' | 'requestDate'>) => Promise<string>;
   updateRecord: (id: string, updates: Partial<MedicalRecord>) => Promise<void>;
   deleteRecord: (id: string) => Promise<void>;
   getRecordsByCustomer: (customerId: string) => MedicalRecord[];
@@ -278,17 +279,15 @@ export const [MedicalRecordProvider, useMedicalRecords] = createContextHook((): 
   }, [user]);
 
   const addRecord = useCallback(async (record: Omit<MedicalRecord, 'id' | 'requestDate'>) => {
-    if (!user) return;
+    if (!user) return '';
 
-    
     if (!record.customerName) {
       throw new Error('customerName is required');
     }
-    
     if (!record.customerId) {
       throw new Error('customerId is required');
     }
-    
+
     const db = getDb();
     const recordsRef = collection(db, 'medicalRecords');
 
@@ -308,7 +307,26 @@ export const [MedicalRecordProvider, useMedicalRecords] = createContextHook((): 
       medicalRecord: record.medicalRecord || null,
     };
 
-    await addDoc(recordsRef, newRecordData);
+    // 同一顧客・同一美容師の未記入カルテがあれば更新（複製防止）
+    if (record.status === 'unwritten') {
+      const existingQuery = query(
+        recordsRef,
+        where('customerId', '==', record.customerId),
+        where('hairdresserId', '==', record.hairdresserId),
+        where('status', '==', 'unwritten'),
+        orderBy('requestDate', 'desc'),
+        limit(1)
+      );
+      const existingSnapshot = await getDocs(existingQuery);
+      if (!existingSnapshot.empty) {
+        const existingDoc = existingSnapshot.docs[0];
+        await updateDoc(doc(db, 'medicalRecords', existingDoc.id), newRecordData);
+        return existingDoc.id;
+      }
+    }
+
+    const docRef = await addDoc(recordsRef, newRecordData);
+    return docRef.id;
   }, [user]);
 
   const updateRecord = useCallback(async (id: string, updates: Partial<MedicalRecord>) => {

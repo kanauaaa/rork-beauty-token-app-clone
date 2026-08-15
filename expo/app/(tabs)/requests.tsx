@@ -123,12 +123,12 @@ function RequestsContent() {
           qrScanTime: qrScanTime,
         };
         
-
-        await addRecord(unwrittenRecord);
+        const recordId = await addRecord(unwrittenRecord);
         
         setSelectedCustomer({
           customerId: customerData.customerId,
-          customerName: customerData.userName
+          customerName: customerData.userName,
+          recordId
         });
         setShowRecordForm(true);
       } else {
@@ -256,8 +256,7 @@ function RequestsContent() {
   const handlePostponeRecord = async () => {
     if (!selectedCustomer) return;
     
-    const newRecord = {
-      id: 'unwritten_' + Date.now(),
+    const recordData = {
       customerId: selectedCustomer.customerId,
       customerName: selectedCustomer.customerName,
       customerEmail: '',
@@ -274,7 +273,17 @@ function RequestsContent() {
       } : undefined
     };
     
-    await addRecord(newRecord);
+    let recordId: string;
+    if (selectedCustomer.recordId) {
+      // 既存の未記入カルテを更新
+      await updateRecord(selectedCustomer.recordId, recordData);
+      recordId = selectedCustomer.recordId;
+    } else {
+      // 新規作成（Provider側で同一顧客の未記入カルテがあれば更新される）
+      recordId = await addRecord(recordData);
+    }
+    
+    setSelectedCustomer({ ...selectedCustomer, recordId });
     
     resetForm();
     
