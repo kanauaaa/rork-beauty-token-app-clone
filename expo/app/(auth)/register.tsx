@@ -30,10 +30,10 @@ const WebView = Platform.OS === 'web'
     }
   : ExpoWebView;
 
-const MapPreviewComponent = ({ latitude, longitude, workplace, address, onLocationChange }: {
+const MapPreviewComponent = ({ latitude, longitude, workplaceName, address, onLocationChange }: {
   latitude: number;
   longitude: number;
-  workplace: string;
+  workplaceName: string;
   address: string;
   onLocationChange?: (lat: number, lon: number) => void;
 }) => {
@@ -111,8 +111,8 @@ const MapPreviewComponent = ({ latitude, longitude, workplace, address, onLocati
         />
       </View>
       <View style={styles.webMapPreviewInfo}>
-        <Text style={styles.webMapPreviewLabel}>勤務地:</Text>
-        <Text style={styles.webMapPreviewValue}>{workplace}</Text>
+        <Text style={styles.webMapPreviewLabel}>勤務先名:</Text>
+        <Text style={styles.webMapPreviewValue}>{workplaceName || '未入力'}</Text>
         <Text style={styles.webMapPreviewLabel}>住所:</Text>
         <Text style={styles.webMapPreviewValue}>{address}</Text>
         <Text style={styles.webMapPreviewLabel}>座標:</Text>
@@ -333,9 +333,6 @@ export default function RegisterScreen() {
         updateFormData('latitude', latitude);
         updateFormData('longitude', longitude);
         updateFormData('address', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-        if (!formData.workplaceName) {
-          updateFormData('workplaceName', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-        }
         Alert.alert('位置情報を取得しました', '住所の詳細取得に失敗しましたが、座標は保存されました');
       }
     } catch (error) {
@@ -556,25 +553,23 @@ export default function RegisterScreen() {
               </View>
             )}
 
-            {formData.role === 'customer' && (
-              <View style={styles.genderSection}>
-                <Text style={styles.genderLabel}>性別 *</Text>
-                <View style={styles.genderSelector}>
-                  <TouchableOpacity
-                    style={[styles.genderButton, formData.gender === 'male' && styles.genderButtonActive]}
-                    onPress={() => updateFormData('gender', 'male')}
-                  >
-                    <Text style={[styles.genderButtonText, formData.gender === 'male' && styles.genderButtonTextActive]}>男性</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.genderButton, formData.gender === 'female' && styles.genderButtonActive]}
-                    onPress={() => updateFormData('gender', 'female')}
-                  >
-                    <Text style={[styles.genderButtonText, formData.gender === 'female' && styles.genderButtonTextActive]}>女性</Text>
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.genderSection}>
+              <Text style={styles.genderLabel}>性別 *</Text>
+              <View style={styles.genderSelector}>
+                <TouchableOpacity
+                  style={[styles.genderButton, formData.gender === 'male' && styles.genderButtonActive]}
+                  onPress={() => updateFormData('gender', 'male')}
+                >
+                  <Text style={[styles.genderButtonText, formData.gender === 'male' && styles.genderButtonTextActive]}>男性</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.genderButton, formData.gender === 'female' && styles.genderButtonActive]}
+                  onPress={() => updateFormData('gender', 'female')}
+                >
+                  <Text style={[styles.genderButtonText, formData.gender === 'female' && styles.genderButtonTextActive]}>女性</Text>
+                </TouchableOpacity>
               </View>
-            )}
+            </View>
 
             <View style={styles.form}>
               <View style={styles.inputContainer}>
@@ -845,7 +840,7 @@ export default function RegisterScreen() {
             <MapPreviewComponent
               latitude={formData.latitude}
               longitude={formData.longitude}
-              workplace={formData.workplace}
+              workplaceName={formData.workplaceName}
               address={formData.address}
               onLocationChange={(lat, lon) => {
                 updateFormData('latitude', lat);
