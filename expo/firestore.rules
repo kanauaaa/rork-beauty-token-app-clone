@@ -35,6 +35,38 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
+    match /referrals/{referralId} {
+      allow read, write: if true;
+    }
+    
+    match /pendingBPMints/{mintId} {
+      allow read, write: if true;
+    }
+    
+    match /ratings/{ratingId} {
+      allow read, write: if true;
+    }
+    
+    match /favorites/{favoriteId} {
+      allow read, write: if true;
+    }
+    
+    match /disputes/{disputeId} {
+      allow read, write: if true;
+    }
+    
+    match /ratingTasks/{taskId} {
+      allow read, write: if true;
+    }
+    
+    match /assistantBTAllocations/{allocationId} {
+      allow read, write: if true;
+    }
+    
+    match /notifications/{notificationId} {
+      allow read, write: if true;
+    }
+    
     // 本番環境用のルール（コメントアウト）
     // match /matchingRequests/{requestId} {
     //   allow read: if request.auth != null;

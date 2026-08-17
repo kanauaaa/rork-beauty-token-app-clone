@@ -355,16 +355,20 @@ export const [AuthProvider, useAuth] = createContextHook((): AuthState => {
         } catch (referralError) {
         }
       } else if (userData.role === 'customer' && !userData.referredBy) {
-        const referralDocRef = doc(db, 'referrals', firebaseUser.uid);
-        await setDoc(referralDocRef, {
-          customerId: firebaseUser.uid,
-          customerName: userData.name,
-          referredCustomers: [],
-          hairdresserInviteCount: 1,
-          referredHairdressers: [],
-          totalBonusEarned: 0,
-          createdAt: serverTimestamp(),
-        });
+        try {
+          const referralDocRef = doc(db, 'referrals', firebaseUser.uid);
+          await setDoc(referralDocRef, {
+            customerId: firebaseUser.uid,
+            customerName: userData.name,
+            referredCustomers: [],
+            hairdresserInviteCount: 1,
+            referredHairdressers: [],
+            totalBonusEarned: 0,
+            createdAt: serverTimestamp(),
+          });
+        } catch (referralError) {
+          // referral doc failure should not block registration
+        }
       }
       
       // Verify saved data
